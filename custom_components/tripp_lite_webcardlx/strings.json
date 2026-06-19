@@ -14,6 +14,7 @@
         },
         "data_description": {
           "url": "Use the full local URL, for example https://192.168.1.50.",
+          "username": "The default local username for WebcardLX cards is localadmin.",
           "allow_unsupported_model": "Only enable this while testing a model outside SU1000XLA and SU1500RTXL2U/SU1500RTXL2UA."
         }
       },
@@ -26,6 +27,9 @@
           "verify_ssl": "Verify SSL certificate",
           "scan_interval": "Polling interval",
           "allow_unsupported_model": "Allow unsupported UPS model"
+        },
+        "data_description": {
+          "username": "The default local username for WebcardLX cards is localadmin."
         }
       },
       "reauth_confirm": {
@@ -34,6 +38,9 @@
         "data": {
           "username": "Username",
           "password": "Password"
+        },
+        "data_description": {
+          "username": "The default local username for WebcardLX cards is localadmin."
         }
       }
     },

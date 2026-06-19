@@ -30,6 +30,7 @@ from .const import (
     CONF_ALLOW_UNSUPPORTED_MODEL,
     CONF_URL,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_USERNAME,
     DEFAULT_VERIFY_SSL,
     DOMAIN,
     MIN_SCAN_INTERVAL,
@@ -56,7 +57,7 @@ def _schema(
     defaults = defaults or {}
     schema: dict[Any, Any] = {
         vol.Required(CONF_URL, default=defaults.get(CONF_URL, "")): str,
-        vol.Required(CONF_USERNAME, default=defaults.get(CONF_USERNAME, "")): str,
+        vol.Required(CONF_USERNAME, default=defaults.get(CONF_USERNAME, DEFAULT_USERNAME)): str,
         (
             vol.Required(CONF_PASSWORD)
             if password_required

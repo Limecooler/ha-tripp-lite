@@ -11,6 +11,7 @@ import sys
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import asdict, dataclass, field
 from getpass import getpass
+from ipaddress import ip_address
 from pathlib import Path
 from typing import Any
 
@@ -32,6 +33,7 @@ from custom_components.tripp_lite_webcardlx.binary_sensor import (  # noqa: E402
     _is_ups_power_state_variable,
 )
 from custom_components.tripp_lite_webcardlx.const import (  # noqa: E402
+    DEFAULT_USERNAME,
     LOAD_ACTION_CYCLE,
     LOAD_ACTION_OFF,
     LOAD_ACTION_ON,
@@ -85,6 +87,8 @@ DEVICE_ACTION_SUPPORT_KEYS = {
     "turn_off": "turn_off_device_supported",
     "reboot": "restart_device_supported",
 }
+
+DEFAULT_SCHEME = "https"
 
 
 @dataclass
@@ -365,6 +369,41 @@ def _parse_key_value(value: str) -> tuple[str, str]:
     return key, item_value
 
 
+def _default_port() -> int | None:
+    """Return the optional default port from the environment."""
+    value = os.getenv("WEBCARDLX_PORT")
+    if not value:
+        return None
+    try:
+        return int(value)
+    except ValueError:
+        return -1
+
+
+def _base_url_from_args(args: argparse.Namespace) -> str:
+    """Build a WebcardLX base URL from IP-oriented CLI arguments."""
+    raw_ip = str(args.ip_address).strip()
+    if "://" in raw_ip or "/" in raw_ip:
+        raise RuntimeError("ip_address expects an IP address, not a URL")
+
+    try:
+        parsed_ip = ip_address(raw_ip)
+    except ValueError as err:
+        raise RuntimeError(
+            "ip_address must be a valid IP address, for example 192.168.1.50"
+        ) from err
+
+    if args.scheme not in {"http", "https"}:
+        raise RuntimeError("--scheme must be http or https")
+
+    if args.port is not None and not 1 <= args.port <= 65535:
+        raise RuntimeError("--port must be between 1 and 65535")
+
+    host = f"[{parsed_ip.compressed}]" if parsed_ip.version == 6 else parsed_ip.compressed
+    port = "" if args.port is None else f":{args.port}"
+    return f"{args.scheme}://{host}{port}"
+
+
 def _require_mutation_flags(args: argparse.Namespace, *, power: bool = False) -> None:
     """Raise if mutation flags are missing."""
     if not args.allow_mutations:
@@ -482,11 +521,28 @@ def _build_parser() -> argparse.ArgumentParser:
             "Read-only by default."
         )
     )
-    parser.add_argument("--url", default=os.getenv("WEBCARDLX_URL"), help="WebcardLX base URL")
+    parser.add_argument(
+        "ip_address",
+        nargs="?",
+        default=os.getenv("WEBCARDLX_IP"),
+        help="WebcardLX card IP address; can also be set with WEBCARDLX_IP",
+    )
+    parser.add_argument(
+        "--scheme",
+        default=os.getenv("WEBCARDLX_SCHEME", DEFAULT_SCHEME),
+        choices=("https", "http"),
+        help="Connection scheme used to build the WebcardLX URL",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=_default_port(),
+        help="Optional WebcardLX TCP port; can also be set with WEBCARDLX_PORT",
+    )
     parser.add_argument(
         "--username",
-        default=os.getenv("WEBCARDLX_USERNAME"),
-        help="WebcardLX username",
+        default=os.getenv("WEBCARDLX_USERNAME", DEFAULT_USERNAME),
+        help=f"WebcardLX username; defaults to {DEFAULT_USERNAME}",
     )
     parser.add_argument(
         "--password",
@@ -578,11 +634,12 @@ def _validate_args(args: argparse.Namespace) -> None:
     """Validate CLI arguments that argparse cannot express cleanly."""
     missing = [
         name
-        for name in ("url", "username")
+        for name in ("ip_address", "username")
         if not getattr(args, name)
     ]
     if missing:
         raise RuntimeError(f"missing required arguments: {', '.join(missing)}")
+    args.base_url = _base_url_from_args(args)
     if args.password is None:
         args.password = getpass("WebcardLX password: ")
     if not args.password:
@@ -611,7 +668,7 @@ async def _async_run(args: argparse.Namespace, report: SmokeReport) -> int:
     """Run the smoke test."""
     connector = TCPConnector(ssl=False if args.insecure else None)
     async with ClientSession(connector=connector) as session:
-        client = WebcardLXClient(session, args.url, args.username, args.password)
+        client = WebcardLXClient(session, args.base_url, args.username, args.password)
         try:
             await client.async_login()
             print(f"[OK] Login to {client.base_url}")

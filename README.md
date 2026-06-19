@@ -29,7 +29,7 @@ This integration can be installed with HACS as a custom repository.
 8. Restart Home Assistant.
 9. Go to **Settings > Devices & services > Add integration**.
 10. Search for **Tripp Lite WebcardLX**.
-11. Enter the WebcardLX URL, username, password, and SSL verification preference.
+11. Enter the WebcardLX URL, username, password, and SSL verification preference. The default local username for these cards is `localadmin`.
 
 If this repository is private, the GitHub account or token configured in HACS must have access to `Limecooler/ha-tripp-lite`. Public custom repositories do not need additional repository-specific access.
 
@@ -39,13 +39,13 @@ If this repository is private, the GitHub account or token configured in HACS mu
 2. Restart Home Assistant.
 3. Go to **Settings > Devices & services > Add integration**.
 4. Search for **Tripp Lite WebcardLX**.
-5. Enter the WebcardLX URL, username, password, and SSL verification preference.
+5. Enter the WebcardLX URL, username, password, and SSL verification preference. The default local username for these cards is `localadmin`.
 
 Use a full local URL such as `https://192.168.1.50` or `http://192.168.1.50`. WebcardLX devices often use self-signed HTTPS certificates; disable SSL verification only when required for that local device.
 
 ## Prerequisites And Permissions
 
-Create or select a WebcardLX user that can read UPS variables, loads, alarms, actions, ready state, and system details. To use buttons, switches, or services that control loads, reboot the UPS, turn outputs on or off, acknowledge alarms, or edit variables, the WebcardLX user must also have the matching control permissions.
+Create or select a WebcardLX user that can read UPS variables, loads, alarms, actions, ready state, and system details. The default local username for these cards is `localadmin`. To use buttons, switches, or services that control loads, reboot the UPS, turn outputs on or off, acknowledge alarms, or edit variables, the WebcardLX user must also have the matching control permissions.
 
 UPS output controls are intentionally disabled by default where Home Assistant supports that behavior. Turning off, rebooting, or cycling a UPS or load can immediately interrupt connected equipment. Test controls with non-critical loads first.
 
@@ -262,22 +262,20 @@ Run it from the repository with a Python environment that has the test dependenc
 
 ```sh
 WEBCARDLX_PASSWORD='secret' .venv312/bin/python scripts/webcardlx_smoke_test.py \
-  --url https://192.168.1.50 \
-  --username admin \
+  192.168.1.50 \
   --insecure \
   --refresh-token-test \
   --verbose \
   --report-json /tmp/webcardlx-smoke.json
 ```
 
-Use `--insecure` only for a local card with a self-signed certificate. Optional endpoint failures are reported as warnings because permissions and firmware capabilities vary by card; add `--strict` when you want optional endpoint warnings or unsupported-model filtering to fail the run.
+The script defaults to HTTPS and username `localadmin`. Use `--scheme http` for HTTP cards, `--port` for nonstandard ports, and `--username` only when the card uses a different account. Use `--insecure` only for a local card with a self-signed certificate. Optional endpoint failures are reported as warnings because permissions and firmware capabilities vary by card; add `--strict` when you want optional endpoint warnings or unsupported-model filtering to fail the run.
 
 Mutation checks are opt-in. Variable updates, alarm acknowledgements, and device-property updates require `--allow-mutations`. Load and UPS power controls also require `--i-understand-power-risk` because they can interrupt connected equipment.
 
 ```sh
 WEBCARDLX_PASSWORD='secret' .venv312/bin/python scripts/webcardlx_smoke_test.py \
-  --url https://192.168.1.50 \
-  --username admin \
+  192.168.1.50 \
   --insecure \
   --allow-mutations \
   --set-variable 1234 42
@@ -288,19 +286,19 @@ For power-control tests, first run with `--verbose` and inspect the controllable
 ## Troubleshooting
 
 - `cannot_connect`: Confirm the URL, scheme, port, routing, and that PowerAlert Device Manager is reachable from Home Assistant.
-- `invalid_auth`: Confirm the WebcardLX local username and password.
+- `invalid_auth`: Confirm the WebcardLX local username and password. The default local username is `localadmin`.
 - `unsupported_model`: Confirm the UPS model is one of `SU1000XLA`, `SU1500RTXL2U`, or `SU1500RTXL2UA`.
 - Self-signed HTTPS certificate failures: reconfigure the integration and disable SSL verification for that local card.
 - Missing load switches: check whether `/api/actions/supported` and `/api/loads` report load control support and `controllable: true`.
 - Missing UPS status sensors: check whether `/api/variables` includes a status, operating mode, power source, input source, line status, online, on-battery, or battery-discharging variable.
 
-Direct API checks can help isolate permissions and device capability issues. Replace the host, username, and password with values from your environment. The token extraction below accepts both flat and JSON:API-style token responses:
+Direct API checks can help isolate permissions and device capability issues. Replace the host and password with values from your environment, and change the username only if the card is not using the default `localadmin` account. The token extraction below accepts both flat and JSON:API-style token responses:
 
 ```sh
 TOKEN="$(
   curl -sk -X POST "https://192.168.1.50/api/oauth/token" \
     -H "Content-Type: application/json" \
-    -d '{"username":"admin","password":"secret","grant_type":"password"}' \
+    -d '{"username":"localadmin","password":"secret","grant_type":"password"}' \
   | jq -r '.access_token // .data.attributes.access_token'
 )"
 

@@ -7,6 +7,7 @@ from datetime import timedelta
 DOMAIN = "tripp_lite_webcardlx"
 MANUFACTURER = "Tripp Lite"
 DEFAULT_NAME = "Tripp Lite WebcardLX"
+DEFAULT_USERNAME = "localadmin"
 DEFAULT_SCAN_INTERVAL = 30
 MIN_SCAN_INTERVAL = 10
 DEFAULT_VERIFY_SSL = True
