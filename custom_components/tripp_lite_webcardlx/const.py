@@ -1,0 +1,73 @@
+"""Constants for the Tripp Lite WebcardLX integration."""
+
+from __future__ import annotations
+
+from datetime import timedelta
+
+DOMAIN = "tripp_lite_webcardlx"
+MANUFACTURER = "Tripp Lite"
+DEFAULT_NAME = "Tripp Lite WebcardLX"
+DEFAULT_SCAN_INTERVAL = 30
+MIN_SCAN_INTERVAL = 10
+DEFAULT_VERIFY_SSL = True
+API_VERSION = "1.0.0"
+REQUEST_TIMEOUT = 10
+REQUEST_CONNECT_TIMEOUT = 5
+STATIC_DATA_REFRESH_INTERVAL = 600
+EVENTS_REFRESH_INTERVAL = 300
+
+CONF_URL = "url"
+CONF_ALLOW_UNSUPPORTED_MODEL = "allow_unsupported_model"
+
+SUPPORTED_UPS_MODELS = {
+    "SU1000XLA",
+    "SU1500RTXL2U",
+    "SU1500RTXL2UA",
+}
+
+SUPPORTED_UPS_MODEL_NAMES = (
+    "SU1000XLA",
+    "SU1500RTXL2U",
+    "SU1500RTXL2UA",
+)
+
+PLATFORMS = [
+    "binary_sensor",
+    "button",
+    "number",
+    "select",
+    "sensor",
+    "switch",
+    "text",
+]
+
+UPDATE_INTERVAL = timedelta(seconds=DEFAULT_SCAN_INTERVAL)
+
+LOAD_ACTION_ON = "LOAD_ACTION_ON"
+LOAD_ACTION_OFF = "LOAD_ACTION_OFF"
+LOAD_ACTION_CYCLE = "LOAD_ACTION_CYCLE"
+SERVICE_LOAD_ACTIONS = {
+    "on": LOAD_ACTION_ON,
+    "off": LOAD_ACTION_OFF,
+    "cycle": LOAD_ACTION_CYCLE,
+}
+
+LOAD_STATE_ON = "LOAD_STATE_ON"
+LOAD_STATE_OFF = "LOAD_STATE_OFF"
+LOAD_STATE_MIXED = "LOAD_STATE_MIXED"
+LOAD_STATE_UNKNOWN = "LOAD_STATE_UNKNOWN"
+
+SUPPORTS_UPDATE = "VARSUPPORTS_UPDATE"
+SUPPORTS_CONTROL_EXECUTION = "VARSUPPORTS_CONTROLEXECUTION"
+
+ATTR_CONFIG_ENTRY_ID = "config_entry_id"
+ATTR_DEVICE_ID = "device_id"
+ATTR_LOAD_ID = "load_id"
+ATTR_VARIABLE_ID = "variable_id"
+ATTR_ACTION = "action"
+ATTR_DELAY = "delay"
+ATTR_TURN_ON_DELAY = "turn_on_delay"
+ATTR_TURN_OFF_DELAY = "turn_off_delay"
+ATTR_VALUE = "value"
+ATTR_TOLERANCE = "tolerance"
+ATTR_ALARM_IDS = "alarm_ids"

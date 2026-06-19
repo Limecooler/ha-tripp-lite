@@ -1,0 +1,122 @@
+execute_load_action:
+  target:
+    entity:
+      integration: tripp_lite_webcardlx
+      domain: switch
+  fields:
+    action:
+      required: true
+      selector:
+        select:
+          translation_key: load_action
+          options:
+            - "on"
+            - "off"
+            - "cycle"
+
+execute_device_action:
+  target:
+    device:
+      integration: tripp_lite_webcardlx
+  fields:
+    action:
+      required: true
+      selector:
+        select:
+          translation_key: device_action
+          options:
+            - "turn_on"
+            - "turn_off"
+            - "reboot"
+    delay:
+      required: false
+      default: 0
+      selector:
+        number:
+          min: 0
+          mode: box
+          unit_of_measurement: s
+    turn_on_delay:
+      required: false
+      selector:
+        number:
+          min: 0
+          mode: box
+          unit_of_measurement: s
+    turn_off_delay:
+      required: false
+      selector:
+        number:
+          min: 0
+          mode: box
+          unit_of_measurement: s
+
+acknowledge_alarms:
+  fields:
+    config_entry_id:
+      required: true
+      selector:
+        config_entry:
+          integration: tripp_lite_webcardlx
+    alarm_ids:
+      required: true
+      selector:
+        object:
+
+acknowledge_all_alarms:
+  fields:
+    config_entry_id:
+      required: true
+      selector:
+        config_entry:
+          integration: tripp_lite_webcardlx
+
+set_variable:
+  target:
+    entity:
+      integration: tripp_lite_webcardlx
+      domain:
+        - number
+        - select
+        - switch
+        - text
+  fields:
+    value:
+      required: true
+      selector:
+        object:
+    tolerance:
+      required: false
+      selector:
+        number:
+          mode: box
+
+update_device_properties:
+  target:
+    device:
+      integration: tripp_lite_webcardlx
+  fields:
+    name:
+      required: false
+      selector:
+        text:
+    location:
+      required: false
+      selector:
+        text:
+    region:
+      required: false
+      selector:
+        text:
+    configured_device_id:
+      required: false
+      selector:
+        text:
+    configured_asset_tag:
+      required: false
+      selector:
+        text:
+    install_date:
+      required: false
+      selector:
+        text:

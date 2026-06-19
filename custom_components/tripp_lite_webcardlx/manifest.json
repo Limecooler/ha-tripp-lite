@@ -1,0 +1,21 @@
+{
+  "domain": "tripp_lite_webcardlx",
+  "name": "Tripp Lite WebcardLX",
+  "after_dependencies": ["dhcp"],
+  "codeowners": ["@bill"],
+  "config_flow": true,
+  "dhcp": [
+    { "hostname": "*webcardlx*" },
+    { "hostname": "*poweralert*" },
+    { "hostname": "*tripplite*" },
+    { "hostname": "*tripp-lite*" }
+  ],
+  "documentation": "https://github.com/bill/ha-tripp-lite",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/bill/ha-tripp-lite/issues",
+  "loggers": ["custom_components.tripp_lite_webcardlx"],
+  "quality_scale": "gold",
+  "requirements": [],
+  "version": "0.1.0"
+}

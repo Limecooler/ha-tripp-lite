@@ -1,0 +1,321 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Tripp Lite WebcardLX",
+        "description": "Connect to a WebcardLX installed in a supported Tripp Lite UPS.",
+        "data": {
+          "url": "URL",
+          "username": "Username",
+          "password": "Password",
+          "verify_ssl": "Verify SSL certificate",
+          "scan_interval": "Polling interval",
+          "allow_unsupported_model": "Allow unsupported UPS model"
+        },
+        "data_description": {
+          "url": "Use the full local URL, for example https://192.168.1.50.",
+          "allow_unsupported_model": "Only enable this while testing a model outside SU1000XLA and SU1500RTXL2U/SU1500RTXL2UA."
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Tripp Lite WebcardLX",
+        "data": {
+          "url": "URL",
+          "username": "Username",
+          "password": "Password",
+          "verify_ssl": "Verify SSL certificate",
+          "scan_interval": "Polling interval",
+          "allow_unsupported_model": "Allow unsupported UPS model"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reauthenticate Tripp Lite WebcardLX",
+        "description": "Update the credentials used to connect to the WebcardLX.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect.",
+      "invalid_auth": "Invalid authentication.",
+      "invalid_url": "Invalid URL.",
+      "unsupported_model": "No supported UPS model was found. Supported models are SU1000XLA, SU1500RTXL2U, and SU1500RTXL2UA.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This WebcardLX is already configured.",
+      "reauth_successful": "Reauthentication was successful.",
+      "reconfigure_successful": "Reconfiguration was successful."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "active_alarms": {
+        "name": "Active alarms"
+      },
+      "online": {
+        "name": "Online"
+      },
+      "on_battery": {
+        "name": "On battery"
+      },
+      "battery_discharging": {
+        "name": "Battery discharging"
+      }
+    },
+    "button": {
+      "acknowledge_all_alarms": {
+        "name": "Acknowledge all alarms"
+      },
+      "cycle_load": {
+        "name": "Cycle {load_name}"
+      },
+      "turn_on_ups": {
+        "name": "Turn on"
+      },
+      "turn_off_ups": {
+        "name": "Turn off"
+      },
+      "reboot_ups": {
+        "name": "Reboot"
+      }
+    },
+    "sensor": {
+      "ups_status": {
+        "name": "UPS status"
+      },
+      "runtime_remaining": {
+        "name": "Runtime remaining"
+      },
+      "battery_capacity": {
+        "name": "Battery capacity"
+      },
+      "battery_voltage": {
+        "name": "Battery voltage"
+      },
+      "input_voltage": {
+        "name": "Input voltage"
+      },
+      "input_current": {
+        "name": "Input current"
+      },
+      "input_frequency": {
+        "name": "Input frequency"
+      },
+      "output_voltage": {
+        "name": "Output voltage"
+      },
+      "output_current": {
+        "name": "Output current"
+      },
+      "output_frequency": {
+        "name": "Output frequency"
+      },
+      "output_power_factor": {
+        "name": "Output power factor"
+      },
+      "output_apparent_power": {
+        "name": "Output apparent power"
+      },
+      "output_reactive_power": {
+        "name": "Output reactive power"
+      },
+      "output_power": {
+        "name": "Output power"
+      },
+      "output_utilization": {
+        "name": "Output utilization"
+      },
+      "temperature": {
+        "name": "Temperature"
+      },
+      "critical_alarm_count": {
+        "name": "Critical alarms"
+      },
+      "warning_alarm_count": {
+        "name": "Warning alarms"
+      },
+      "informational_alarm_count": {
+        "name": "Informational alarms"
+      },
+      "total_alarm_count": {
+        "name": "Total alarms"
+      },
+      "high_severity": {
+        "name": "Highest alarm severity"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Tripp Lite WebcardLX options",
+        "data": {
+          "scan_interval": "Polling interval",
+          "allow_unsupported_model": "Allow unsupported UPS model"
+        },
+        "data_description": {
+          "allow_unsupported_model": "Only enable this while testing a model outside SU1000XLA and SU1500RTXL2U/SU1500RTXL2UA."
+        }
+      }
+    }
+  },
+  "selectors": {
+    "load_action": {
+      "options": {
+        "on": "Turn on",
+        "off": "Turn off",
+        "cycle": "Cycle"
+      }
+    },
+    "device_action": {
+      "options": {
+        "turn_on": "Turn on",
+        "turn_off": "Turn off",
+        "reboot": "Reboot"
+      }
+    }
+  },
+  "services": {
+    "execute_load_action": {
+      "name": "Execute load action",
+      "description": "Turn on, turn off, or power-cycle targeted UPS load switches. Cycling or turning off a load can interrupt connected equipment.",
+      "fields": {
+        "action": {
+          "name": "Action",
+          "description": "Load action to execute."
+        }
+      }
+    },
+    "execute_device_action": {
+      "name": "Execute UPS device action",
+      "description": "Execute a UPS power action against targeted UPS devices. Turn off and reboot can interrupt protected equipment.",
+      "fields": {
+        "action": {
+          "name": "Action",
+          "description": "UPS power action to execute."
+        },
+        "delay": {
+          "name": "Delay",
+          "description": "Delay in seconds applied when action-specific delays are not supplied."
+        },
+        "turn_on_delay": {
+          "name": "Turn-on delay",
+          "description": "Delay in seconds before the UPS turns on."
+        },
+        "turn_off_delay": {
+          "name": "Turn-off delay",
+          "description": "Delay in seconds before the UPS turns off."
+        }
+      }
+    },
+    "acknowledge_alarms": {
+      "name": "Acknowledge alarms",
+      "description": "Acknowledge specific active alarm IDs reported by the selected WebcardLX config entry.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Config entry",
+          "description": "WebcardLX config entry that reported the alarms."
+        },
+        "alarm_ids": {
+          "name": "Alarm IDs",
+          "description": "List of current WebcardLX alarm IDs to acknowledge."
+        }
+      }
+    },
+    "acknowledge_all_alarms": {
+      "name": "Acknowledge all alarms",
+      "description": "Acknowledge all active alarms reported by the selected WebcardLX config entry.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Config entry",
+          "description": "WebcardLX config entry whose alarms should be acknowledged."
+        }
+      }
+    },
+    "set_variable": {
+      "name": "Set variable",
+      "description": "Update targeted editable WebcardLX configuration entities.",
+      "fields": {
+        "value": {
+          "name": "Value",
+          "description": "New value for the targeted variable entity."
+        },
+        "tolerance": {
+          "name": "Tolerance",
+          "description": "Optional numeric tolerance accepted by the WebcardLX for the update."
+        }
+      }
+    },
+    "update_device_properties": {
+      "name": "Update device properties",
+      "description": "Update editable device metadata on targeted UPS devices.",
+      "fields": {
+        "name": {
+          "name": "Name"
+        },
+        "location": {
+          "name": "Location"
+        },
+        "region": {
+          "name": "Region"
+        },
+        "configured_device_id": {
+          "name": "Configured device ID"
+        },
+        "configured_asset_tag": {
+          "name": "Configured asset tag"
+        },
+        "install_date": {
+          "name": "Install date"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "entry_not_found": {
+      "message": "No configured Tripp Lite WebcardLX entry was found."
+    },
+    "entry_required": {
+      "message": "config_entry_id is required when more than one Tripp Lite WebcardLX entry exists."
+    },
+    "service_call_failed": {
+      "message": "The WebcardLX service call failed: {error}"
+    },
+    "invalid_target": {
+      "message": "The selected target is not a valid Tripp Lite WebcardLX target for this action."
+    },
+    "load_action_not_supported": {
+      "message": "The selected load does not currently support this action."
+    },
+    "device_action_not_supported": {
+      "message": "The selected UPS does not currently support this action."
+    },
+    "variable_not_editable": {
+      "message": "The selected variable is no longer editable."
+    },
+    "invalid_variable_value": {
+      "message": "The value is not valid for the selected variable entity."
+    },
+    "invalid_select_option": {
+      "message": "The selected option is not valid for this variable."
+    },
+    "alarm_not_found": {
+      "message": "The following alarm IDs are not active on the selected config entry: {alarm_ids}"
+    },
+    "no_device_properties": {
+      "message": "At least one editable device property must be provided."
+    },
+    "load_action_failed": {
+      "message": "The WebcardLX load action failed: {error}"
+    },
+    "variable_update_failed": {
+      "message": "The WebcardLX variable update failed: {error}"
+    },
+    "button_action_failed": {
+      "message": "The WebcardLX button action failed: {error}"
+    }
+  }
+}

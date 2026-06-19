@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ha-tripp-lite-webcardlx"
+version = "0.1.0"
+description = "Home Assistant custom integration for Tripp Lite WebcardLX UPS cards."
+requires-python = ">=3.12"
+dependencies = []
+
+[project.optional-dependencies]
+test = [
+  "aiohttp",
+  "homeassistant",
+  "pytest",
+  "pytest-asyncio",
+  "pytest-cov",
+  "pytest-homeassistant-custom-component"
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+addopts = [
+  "--cov=custom_components.tripp_lite_webcardlx",
+  "--cov-report=term-missing",
+  "--cov-fail-under=100"
+]
+
+[tool.coverage.run]
+source = ["custom_components.tripp_lite_webcardlx"]
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.setuptools.packages.find]
+include = ["custom_components*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+"custom_components.tripp_lite_webcardlx" = ["*.json", "*.yaml"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "UP"]

@@ -1,0 +1,120 @@
+{
+  "services": {
+    "execute_load_action": {
+      "service": "mdi:power-plug"
+    },
+    "execute_device_action": {
+      "service": "mdi:power"
+    },
+    "acknowledge_alarms": {
+      "service": "mdi:check-circle-outline"
+    },
+    "acknowledge_all_alarms": {
+      "service": "mdi:check-all"
+    },
+    "set_variable": {
+      "service": "mdi:tune"
+    },
+    "update_device_properties": {
+      "service": "mdi:pencil"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "active_alarms": {
+        "default": "mdi:alert-circle-outline"
+      },
+      "online": {
+        "default": "mdi:power-plug"
+      },
+      "on_battery": {
+        "default": "mdi:battery-arrow-down-outline"
+      },
+      "battery_discharging": {
+        "default": "mdi:battery-minus-outline"
+      }
+    },
+    "button": {
+      "acknowledge_all_alarms": {
+        "default": "mdi:check-circle-outline"
+      },
+      "cycle_load": {
+        "default": "mdi:restart"
+      },
+      "turn_on_ups": {
+        "default": "mdi:power"
+      },
+      "turn_off_ups": {
+        "default": "mdi:power-off"
+      },
+      "reboot_ups": {
+        "default": "mdi:restart"
+      }
+    },
+    "sensor": {
+      "ups_status": {
+        "default": "mdi:information-outline"
+      },
+      "runtime_remaining": {
+        "default": "mdi:clock-alert-outline"
+      },
+      "battery_capacity": {
+        "default": "mdi:battery"
+      },
+      "battery_voltage": {
+        "default": "mdi:sine-wave"
+      },
+      "input_voltage": {
+        "default": "mdi:sine-wave"
+      },
+      "input_current": {
+        "default": "mdi:current-ac"
+      },
+      "input_frequency": {
+        "default": "mdi:sine-wave"
+      },
+      "output_voltage": {
+        "default": "mdi:sine-wave"
+      },
+      "output_current": {
+        "default": "mdi:current-ac"
+      },
+      "output_frequency": {
+        "default": "mdi:sine-wave"
+      },
+      "output_power_factor": {
+        "default": "mdi:angle-acute"
+      },
+      "output_apparent_power": {
+        "default": "mdi:gauge"
+      },
+      "output_reactive_power": {
+        "default": "mdi:gauge"
+      },
+      "output_power": {
+        "default": "mdi:flash"
+      },
+      "output_utilization": {
+        "default": "mdi:gauge"
+      },
+      "temperature": {
+        "default": "mdi:thermometer"
+      },
+      "critical_alarm_count": {
+        "default": "mdi:alert-octagon-outline"
+      },
+      "warning_alarm_count": {
+        "default": "mdi:alert-outline"
+      },
+      "informational_alarm_count": {
+        "default": "mdi:information-outline"
+      },
+      "total_alarm_count": {
+        "default": "mdi:counter"
+      },
+      "high_severity": {
+        "default": "mdi:alert-circle-outline"
+      }
+    }
+  }
+}
