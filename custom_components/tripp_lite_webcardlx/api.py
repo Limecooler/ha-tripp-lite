@@ -146,6 +146,7 @@ class WebcardLXClient:
             "POST",
             "/api/oauth/token",
             auth=False,
+            content_type="application/json",
             json={
                 "username": self.username,
                 "password": self.password,
@@ -174,12 +175,22 @@ class WebcardLXClient:
         """Refresh the access token while holding the refresh lock."""
         if not self.refresh_token:
             raise WebcardLXInvalidAuth("No refresh token is available")
-        payload = await self._request(
-            "POST",
-            "/api/oauth/refresh",
-            auth=False,
-            bearer=self.refresh_token,
-        )
+        try:
+            payload = await self._request(
+                "POST",
+                "/api/oauth/refresh",
+                auth=False,
+                content_type="application/json",
+                bearer=self.refresh_token,
+            )
+        except WebcardLXApiError as err:
+            if err.status != 404:
+                raise
+            _LOGGER.debug(
+                "WebcardLX refresh endpoint is unavailable; renewing token with password grant"
+            )
+            await self.async_login()
+            return
         access_token = _token_value(payload, "access_token")
         if not access_token:
             raise WebcardLXInvalidAuth("Refresh response did not include an access token")
@@ -197,6 +208,7 @@ class WebcardLXClient:
                     "POST",
                     "/api/oauth/token/logout",
                     auth=False,
+                    content_type="application/json",
                     bearer=self.refresh_token,
                 )
             except WebcardLXError:
@@ -399,13 +411,14 @@ class WebcardLXClient:
         json: Mapping[str, Any] | None = None,
         params: Mapping[str, Any] | None = None,
         allow_404: bool = False,
+        content_type: str = JSON_API_CONTENT_TYPE,
         _retried: bool = False,
     ) -> dict[str, Any]:
         """Make an API request."""
         url = f"{self.base_url}{path}"
         headers = {
             "Accept": JSON_API_CONTENT_TYPE,
-            "Content-Type": JSON_API_CONTENT_TYPE,
+            "Content-Type": content_type,
             "Accept-Version": API_VERSION,
         }
         token = bearer or (self.access_token if auth else None)

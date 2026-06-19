@@ -159,6 +159,30 @@ class RoutingSession:
         return FakeResponse(payload=payload)
 
 
+class MissingRefreshSession(RoutingSession):
+    """Route responses with an unavailable refresh endpoint."""
+
+    def request(self, method: str, url: str, **kwargs: object) -> FakeResponse:
+        """Return a response for a path."""
+        path = urlsplit(url).path
+        if path == "/api/oauth/refresh":
+            self.calls.append((method, path, kwargs))
+            return FakeResponse(status=404)
+        return super().request(method, url, **kwargs)
+
+
+class ErrorRefreshSession(RoutingSession):
+    """Route responses with a failing refresh endpoint."""
+
+    def request(self, method: str, url: str, **kwargs: object) -> FakeResponse:
+        """Return a response for a path."""
+        path = urlsplit(url).path
+        if path == "/api/oauth/refresh":
+            self.calls.append((method, path, kwargs))
+            return FakeResponse(status=500)
+        return super().request(method, url, **kwargs)
+
+
 async def test_login_accepts_whitespace_token_keys() -> None:
     """Test token parsing for the whitespace keys shown in the vendor docs."""
     client = WebcardLXClient(  # type: ignore[arg-type]
@@ -364,6 +388,52 @@ async def test_refresh_skips_when_token_already_changed() -> None:
     await client.async_refresh_token()
 
     assert client.refresh_token == "rotated"
+
+
+async def test_refresh_falls_back_to_login_when_refresh_endpoint_is_missing() -> None:
+    """Test firmware that omits the documented refresh endpoint."""
+    session = MissingRefreshSession()
+    client = WebcardLXClient(session, "https://host", "u", "p")  # type: ignore[arg-type]
+
+    await client.async_login()
+    await client.async_refresh_token()
+
+    calls = [(method, path) for method, path, _kwargs in session.calls]
+    assert calls.count(("POST", "/api/oauth/token")) == 2
+    assert ("POST", "/api/oauth/refresh") in calls
+    assert client.access_token == "a"
+    assert client.refresh_token == "r"
+
+
+async def test_refresh_does_not_fall_back_for_refresh_server_errors() -> None:
+    """Test non-404 refresh failures still surface."""
+    import pytest
+
+    session = ErrorRefreshSession()
+    client = WebcardLXClient(session, "https://host", "u", "p")  # type: ignore[arg-type]
+
+    await client.async_login()
+    with pytest.raises(WebcardLXApiError):
+        await client.async_refresh_token()
+
+
+async def test_oauth_endpoints_use_json_content_type() -> None:
+    """Test that OAuth endpoints send application/json, not application/vnd.api+json."""
+    session = RoutingSession()
+    client = WebcardLXClient(session, "https://host", "u", "p")  # type: ignore[arg-type]
+
+    await client.async_login()
+    client.refresh_token = "r"
+    await client.async_refresh_token()
+    await client.async_logout()
+
+    oauth_paths = {"/api/oauth/token", "/api/oauth/refresh", "/api/oauth/token/logout"}
+    for method, path, kwargs in session.calls:
+        if path in oauth_paths:
+            ct = kwargs.get("headers", {}).get("Content-Type", "")
+            assert ct == "application/json", (
+                f"{path} sent Content-Type {ct!r}, want application/json"
+            )
 
 
 def test_unsupported_model_error() -> None:
