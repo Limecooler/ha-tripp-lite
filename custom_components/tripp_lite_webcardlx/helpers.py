@@ -65,7 +65,7 @@ def as_float(value: Any) -> float | None:
     """Parse a number from a WebcardLX value."""
     if value is None or value == "":
         return None
-    if isinstance(value, (int, float)):
+    if isinstance(value, int | float):
         numeric = float(value)
         return numeric if math.isfinite(numeric) else None
     text = str(value).strip().replace(",", "")

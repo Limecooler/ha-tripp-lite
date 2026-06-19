@@ -1,0 +1,120 @@
+{
+  "selector": {
+    "load_action": {
+      "options": {
+        "on": "Turn on",
+        "off": "Turn off",
+        "cycle": "Cycle"
+      }
+    },
+    "device_action": {
+      "options": {
+        "turn_on": "Turn on",
+        "turn_off": "Turn off",
+        "reboot": "Reboot"
+      }
+    }
+  },
+  "services": {
+    "execute_load_action": {
+      "name": "Execute load action",
+      "description": "Turn on, turn off, or power-cycle targeted UPS load switches. Cycling or turning off a load can interrupt connected equipment.",
+      "fields": {
+        "action": {
+          "name": "Action",
+          "description": "Load action to execute."
+        }
+      }
+    },
+    "execute_device_action": {
+      "name": "Execute UPS device action",
+      "description": "Execute a UPS power action against targeted UPS devices. Turn off and reboot can interrupt protected equipment.",
+      "fields": {
+        "action": {
+          "name": "Action",
+          "description": "UPS power action to execute."
+        },
+        "delay": {
+          "name": "Delay",
+          "description": "Delay in seconds applied when action-specific delays are not supplied."
+        },
+        "turn_on_delay": {
+          "name": "Turn-on delay",
+          "description": "Delay in seconds before the UPS turns on."
+        },
+        "turn_off_delay": {
+          "name": "Turn-off delay",
+          "description": "Delay in seconds before the UPS turns off."
+        }
+      }
+    },
+    "acknowledge_alarms": {
+      "name": "Acknowledge alarms",
+      "description": "Acknowledge specific active alarm IDs reported by the selected WebcardLX config entry.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Config entry",
+          "description": "WebcardLX config entry that reported the alarms."
+        },
+        "alarm_ids": {
+          "name": "Alarm IDs",
+          "description": "List of current WebcardLX alarm IDs to acknowledge."
+        }
+      }
+    },
+    "acknowledge_all_alarms": {
+      "name": "Acknowledge all alarms",
+      "description": "Acknowledge all active alarms reported by the selected WebcardLX config entry.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Config entry",
+          "description": "WebcardLX config entry whose alarms should be acknowledged."
+        }
+      }
+    },
+    "set_variable": {
+      "name": "Set variable",
+      "description": "Update targeted editable WebcardLX configuration entities.",
+      "fields": {
+        "value": {
+          "name": "Value",
+          "description": "New value for the targeted variable entity."
+        },
+        "tolerance": {
+          "name": "Tolerance",
+          "description": "Optional numeric tolerance accepted by the WebcardLX for the update."
+        }
+      }
+    },
+    "update_device_properties": {
+      "name": "Update device properties",
+      "description": "Update editable device metadata on targeted UPS devices.",
+      "fields": {
+        "name": {
+          "name": "Name",
+          "description": "Friendly name stored on the WebcardLX device record."
+        },
+        "location": {
+          "name": "Location",
+          "description": "Location metadata stored on the WebcardLX device record."
+        },
+        "region": {
+          "name": "Region",
+          "description": "Region metadata stored on the WebcardLX device record."
+        },
+        "configured_device_id": {
+          "name": "Configured device ID",
+          "description": "Device ID metadata stored on the WebcardLX device record."
+        },
+        "configured_asset_tag": {
+          "name": "Configured asset tag",
+          "description": "Asset tag metadata stored on the WebcardLX device record."
+        },
+        "install_date": {
+          "name": "Install date",
+          "description": "Installation date metadata stored on the WebcardLX device record."
+        }
+      }
+    }
+  }
+}

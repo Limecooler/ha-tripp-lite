@@ -162,7 +162,7 @@
       }
     }
   },
-  "selectors": {
+  "selector": {
     "load_action": {
       "options": {
         "on": "Turn on",
@@ -254,22 +254,28 @@
       "description": "Update editable device metadata on targeted UPS devices.",
       "fields": {
         "name": {
-          "name": "Name"
+          "name": "Name",
+          "description": "Friendly name stored on the WebcardLX device record."
         },
         "location": {
-          "name": "Location"
+          "name": "Location",
+          "description": "Location metadata stored on the WebcardLX device record."
         },
         "region": {
-          "name": "Region"
+          "name": "Region",
+          "description": "Region metadata stored on the WebcardLX device record."
         },
         "configured_device_id": {
-          "name": "Configured device ID"
+          "name": "Configured device ID",
+          "description": "Device ID metadata stored on the WebcardLX device record."
         },
         "configured_asset_tag": {
-          "name": "Configured asset tag"
+          "name": "Configured asset tag",
+          "description": "Asset tag metadata stored on the WebcardLX device record."
         },
         "install_date": {
-          "name": "Install date"
+          "name": "Install date",
+          "description": "Installation date metadata stored on the WebcardLX device record."
         }
       }
     }

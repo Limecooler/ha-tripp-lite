@@ -27,6 +27,8 @@ jobs:
           root = pathlib.Path("custom_components/tripp_lite_webcardlx")
           for name in ("manifest.json", "strings.json", "icons.json"):
               json.loads((root / name).read_text())
+          for path in (root / "translations").glob("*.json"):
+              json.loads(path.read_text())
           for name in ("services.yaml", "quality_scale.yaml"):
               yaml.safe_load((root / name).read_text())
           tomllib.loads(pathlib.Path("pyproject.toml").read_text())

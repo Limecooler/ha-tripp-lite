@@ -235,14 +235,14 @@ class WebcardLXDataUpdateCoordinator(DataUpdateCoordinator[WebcardLXData]):
                 self._optional_failures.add(name)
             if name in self._last_optional_data:
                 cached = self._last_optional_data[name]
-                return cached.copy() if isinstance(cached, (dict, list, set)) else cached
-            return default.copy() if isinstance(default, (dict, list, set)) else default
+                return cached.copy() if isinstance(cached, dict | list | set) else cached
+            return default.copy() if isinstance(default, dict | list | set) else default
 
         if name in self._optional_failures:
             _LOGGER.info("WebcardLX optional endpoint %s recovered", name)
             self._optional_failures.remove(name)
         self._last_optional_data[name] = (
-            result.copy() if isinstance(result, (dict, list, set)) else result
+            result.copy() if isinstance(result, dict | list | set) else result
         )
         return result
 

@@ -90,6 +90,8 @@ DEVICE_PROPERTY_FIELDS = {
     "install_date",
 }
 
+CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
+
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up integration-level services."""
