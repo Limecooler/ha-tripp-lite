@@ -14,7 +14,7 @@ from custom_components.tripp_lite_webcardlx.api import (
     WebcardLXInvalidAuth,
     WebcardLXUnsupportedModel,
 )
-from custom_components.tripp_lite_webcardlx.const import CONF_ALLOW_UNSUPPORTED_MODEL, DOMAIN
+from custom_components.tripp_lite_webcardlx.const import DOMAIN
 from custom_components.tripp_lite_webcardlx.coordinator import WebcardLXDataUpdateCoordinator
 
 
@@ -155,14 +155,14 @@ async def test_fetch_data_filters_and_merges_supported_ups_data(hass: HomeAssist
 
 
 async def test_fetch_data_can_allow_unsupported_model_fallback(hass: HomeAssistant) -> None:
-    """Test explicit fallback for unsupported UPS models."""
+    """Test that any UPS device is accepted regardless of model."""
     client = FakeClient()
     client.devices = [{"device_id": 8, "model": "SMART1500"}]
     client.variables = [{"id": "8", "device_id": 8, "device_type": "DEVICE_TYPE_UPS"}]
     client.control_variables = []
     client.loads = []
     client.load_groups = []
-    coordinator = make_coordinator(hass, client, options={CONF_ALLOW_UNSUPPORTED_MODEL: True})
+    coordinator = make_coordinator(hass, client)
 
     data = await coordinator._async_fetch_data()
 

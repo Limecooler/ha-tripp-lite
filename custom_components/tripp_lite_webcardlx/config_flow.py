@@ -27,7 +27,6 @@ from .api import (
     normalize_base_url,
 )
 from .const import (
-    CONF_ALLOW_UNSUPPORTED_MODEL,
     CONF_URL,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_USERNAME,
@@ -63,10 +62,6 @@ def _schema(
             if password_required
             else vol.Optional(CONF_PASSWORD, default="")
         ): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
-        vol.Optional(
-            CONF_VERIFY_SSL,
-            default=defaults.get(CONF_VERIFY_SSL, DEFAULT_VERIFY_SSL),
-        ): bool,
     }
     if include_options:
         schema.update(
@@ -75,10 +70,6 @@ def _schema(
                     CONF_SCAN_INTERVAL,
                     default=defaults.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
                 ): vol.All(vol.Coerce(int), vol.Range(min=MIN_SCAN_INTERVAL)),
-                vol.Optional(
-                    CONF_ALLOW_UNSUPPORTED_MODEL,
-                    default=defaults.get(CONF_ALLOW_UNSUPPORTED_MODEL, False),
-                ): bool,
             }
         )
     return vol.Schema(schema)
@@ -114,7 +105,7 @@ async def async_validate_input(
         active_device_ids = supported_device_ids(
             devices,
             variables,
-            allow_unsupported_model=user_input.get(CONF_ALLOW_UNSUPPORTED_MODEL, False),
+            allow_unsupported_model=True,
         )
         models = discovered_models(devices)
         if not active_device_ids:
@@ -354,10 +345,6 @@ class OptionsFlow(config_entries.OptionsFlow):
                         CONF_SCAN_INTERVAL,
                         default=defaults.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
                     ): vol.All(vol.Coerce(int), vol.Range(min=MIN_SCAN_INTERVAL)),
-                    vol.Optional(
-                        CONF_ALLOW_UNSUPPORTED_MODEL,
-                        default=defaults.get(CONF_ALLOW_UNSUPPORTED_MODEL, False),
-                    ): bool,
                 }
             ),
         )
@@ -376,7 +363,7 @@ def _data_from_input(
         CONF_URL: normalize_base_url(str(user_input[CONF_URL])),
         CONF_USERNAME: user_input[CONF_USERNAME],
         CONF_PASSWORD: password,
-        CONF_VERIFY_SSL: user_input.get(CONF_VERIFY_SSL, DEFAULT_VERIFY_SSL),
+        CONF_VERIFY_SSL: DEFAULT_VERIFY_SSL,
     }
 
 
@@ -384,5 +371,4 @@ def _options_from_input(user_input: Mapping[str, Any]) -> dict[str, Any]:
     """Return config-entry options from flow input."""
     return {
         CONF_SCAN_INTERVAL: int(user_input.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)),
-        CONF_ALLOW_UNSUPPORTED_MODEL: bool(user_input.get(CONF_ALLOW_UNSUPPORTED_MODEL, False)),
     }

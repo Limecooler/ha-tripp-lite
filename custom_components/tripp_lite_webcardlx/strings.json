@@ -3,32 +3,27 @@
     "step": {
       "user": {
         "title": "Tripp Lite WebcardLX",
-        "description": "Connect to a WebcardLX installed in a supported Tripp Lite UPS.",
+        "description": "Connect to a WebcardLX installed in a Tripp Lite UPS.",
         "data": {
-          "url": "URL",
+          "url": "IP address",
           "username": "Username",
           "password": "Password",
-          "verify_ssl": "Verify SSL certificate",
-          "scan_interval": "Polling interval",
-          "allow_unsupported_model": "Allow unsupported UPS model"
+          "scan_interval": "Polling interval"
         },
         "data_description": {
-          "url": "Use the full local URL, for example https://192.168.1.50.",
-          "username": "The default local username for WebcardLX cards is localadmin.",
-          "allow_unsupported_model": "Only enable this while testing a model outside SU1000XLA and SU1500RTXL2U/SU1500RTXL2UA."
+          "url": "IP address of the WebcardLX card, for example 192.168.1.50.",
+          "username": "The default local username for WebcardLX cards is localadmin."
         }
       },
       "reconfigure": {
         "title": "Reconfigure Tripp Lite WebcardLX",
         "data": {
-          "url": "URL",
+          "url": "IP address",
           "username": "Username",
-          "password": "Password",
-          "verify_ssl": "Verify SSL certificate",
-          "scan_interval": "Polling interval",
-          "allow_unsupported_model": "Allow unsupported UPS model"
+          "password": "Password"
         },
         "data_description": {
+          "url": "IP address of the WebcardLX card, for example 192.168.1.50.",
           "username": "The default local username for WebcardLX cards is localadmin."
         }
       },
@@ -48,7 +43,7 @@
       "cannot_connect": "Failed to connect.",
       "invalid_auth": "Invalid authentication.",
       "invalid_url": "Invalid URL.",
-      "unsupported_model": "No supported UPS model was found. Supported models are SU1000XLA, SU1500RTXL2U, and SU1500RTXL2UA.",
+      "unsupported_model": "No UPS devices were found on this WebcardLX.",
       "unknown": "Unexpected error."
     },
     "abort": {
@@ -160,11 +155,7 @@
       "init": {
         "title": "Tripp Lite WebcardLX options",
         "data": {
-          "scan_interval": "Polling interval",
-          "allow_unsupported_model": "Allow unsupported UPS model"
-        },
-        "data_description": {
-          "allow_unsupported_model": "Only enable this while testing a model outside SU1000XLA and SU1500RTXL2U/SU1500RTXL2UA."
+          "scan_interval": "Polling interval"
         }
       }
     }

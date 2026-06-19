@@ -29,7 +29,7 @@ This integration can be installed with HACS as a custom repository.
 8. Restart Home Assistant.
 9. Go to **Settings > Devices & services > Add integration**.
 10. Search for **Tripp Lite WebcardLX**.
-11. Enter the WebcardLX URL, username, password, and SSL verification preference. The default local username for these cards is `localadmin`.
+11. Enter the IP address, username, and password. The default local username for these cards is `localadmin`.
 
 If this repository is private, the GitHub account or token configured in HACS must have access to `Limecooler/ha-tripp-lite`. Public custom repositories do not need additional repository-specific access.
 
@@ -39,9 +39,7 @@ If this repository is private, the GitHub account or token configured in HACS mu
 2. Restart Home Assistant.
 3. Go to **Settings > Devices & services > Add integration**.
 4. Search for **Tripp Lite WebcardLX**.
-5. Enter the WebcardLX URL, username, password, and SSL verification preference. The default local username for these cards is `localadmin`.
-
-Use a full local URL such as `https://192.168.1.50` or `http://192.168.1.50`. WebcardLX devices often use self-signed HTTPS certificates; disable SSL verification only when required for that local device.
+5. Enter the IP address, username, and password. The default local username for these cards is `localadmin`.
 
 ## Prerequisites And Permissions
 
@@ -51,9 +49,9 @@ UPS output controls are intentionally disabled by default where Home Assistant s
 
 ## Supported Devices
 
-By default the integration only creates entities for UPS device records whose model normalizes to `SU1000XLA`, `SU1500RTXL2U`, or `SU1500RTXL2UA`. Variables and loads from connected peripheral devices are filtered out.
+The integration creates entities for any UPS device records reported by the WebcardLX. Variables and loads from connected peripheral devices are filtered out.
 
-The scan interval and advanced `allow_unsupported_model` lab-test setting are integration options. Leave `allow_unsupported_model` disabled for the supported-device behavior requested for this integration.
+The polling interval can be adjusted in integration options.
 
 ## Discovery And Identity
 
@@ -244,9 +242,9 @@ actions:
 
 ## Reconfiguration And Reauthentication
 
-Use the integration’s **Reconfigure** flow to change URL, credentials, or SSL verification. Password fields use password selectors and are not prefilled; leaving the password blank during reconfigure keeps the stored password.
+Use the integration’s **Reconfigure** flow to change the IP address or credentials. Password fields are not prefilled; leaving the password blank during reconfigure keeps the stored password.
 
-Use **Options** to change the scan interval or unsupported-model testing option.
+Use **Options** to change the polling interval.
 
 If authentication fails during setup or polling, Home Assistant starts the reauthentication flow.
 
@@ -285,10 +283,10 @@ For power-control tests, first run with `--verbose` and inspect the controllable
 
 ## Troubleshooting
 
-- `cannot_connect`: Confirm the URL, scheme, port, routing, and that PowerAlert Device Manager is reachable from Home Assistant.
+- `cannot_connect`: Confirm the IP address, routing, and that PowerAlert Device Manager is reachable from Home Assistant.
 - `invalid_auth`: Confirm the WebcardLX local username and password. The default local username is `localadmin`.
 - `unsupported_model`: Confirm the UPS model is one of `SU1000XLA`, `SU1500RTXL2U`, or `SU1500RTXL2UA`.
-- Self-signed HTTPS certificate failures: reconfigure the integration and disable SSL verification for that local card.
+- Self-signed HTTPS certificate failures: leave **Verify SSL certificate** disabled, which is the default for new entries.
 - Missing load switches: check whether `/api/actions/supported` and `/api/loads` report load control support and `controllable: true`.
 - Missing UPS status sensors: check whether `/api/variables` includes a status, operating mode, power source, input source, line status, online, on-battery, or battery-discharging variable.
 

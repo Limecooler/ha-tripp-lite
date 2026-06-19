@@ -22,7 +22,6 @@ from .api import (
     WebcardLXUnsupportedModel,
 )
 from .const import (
-    CONF_ALLOW_UNSUPPORTED_MODEL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     EVENTS_REFRESH_INTERVAL,
@@ -127,17 +126,10 @@ class WebcardLXDataUpdateCoordinator(DataUpdateCoordinator[WebcardLXData]):
                     by_id[item_id] = {**by_id.get(item_id, {}), **item}
             variables = list(by_id.values())
 
-        options = getattr(self.config_entry, "options", {}) or {}
-        allow_unsupported_model = bool(
-            options.get(
-                CONF_ALLOW_UNSUPPORTED_MODEL,
-                self.config_entry.data.get(CONF_ALLOW_UNSUPPORTED_MODEL, False),
-            )
-        )
         active_device_ids = supported_device_ids(
             devices,
             variables,
-            allow_unsupported_model=allow_unsupported_model,
+            allow_unsupported_model=True,
         )
         if not active_device_ids:
             raise WebcardLXUnsupportedModel(discovered_models(devices))

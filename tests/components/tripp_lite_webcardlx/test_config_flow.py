@@ -15,10 +15,7 @@ from custom_components.tripp_lite_webcardlx.api import (
     WebcardLXInvalidAuth,
     WebcardLXUnsupportedModel,
 )
-from custom_components.tripp_lite_webcardlx.const import (
-    CONF_ALLOW_UNSUPPORTED_MODEL,
-    CONF_URL,
-)
+from custom_components.tripp_lite_webcardlx.const import CONF_URL
 
 
 class FakeValidationClient:
@@ -69,9 +66,7 @@ def valid_input(**updates: Any) -> dict[str, Any]:
         CONF_URL: "ups.local/",
         CONF_USERNAME: "admin",
         CONF_PASSWORD: "secret",
-        CONF_VERIFY_SSL: False,
         CONF_SCAN_INTERVAL: 30,
-        CONF_ALLOW_UNSUPPORTED_MODEL: False,
     }
     data.update(updates)
     return data
@@ -164,7 +159,7 @@ async def test_validate_input_success_and_fallbacks() -> None:
     FakeValidationClient.variables = [{"device_id": 3, "device_type": "DEVICE_TYPE_UPS"}]
     result = await config_flow.async_validate_input(
         SimpleNamespace(session="session"),
-        valid_input(**{CONF_ALLOW_UNSUPPORTED_MODEL: True}),
+        valid_input(),
     )
 
     assert result.title == "SMART1500"
@@ -194,8 +189,21 @@ async def test_validate_input_success_and_fallbacks() -> None:
     assert result.unique_id == "SERIAL"
 
 
-async def test_validate_input_rejects_unsupported_model() -> None:
-    """Test direct unsupported-model validation."""
+def test_data_from_input_defaults_ssl_verification_to_insecure() -> None:
+    """Test omitted SSL verification is stored as disabled."""
+    data = config_flow._data_from_input(
+        {
+            CONF_URL: "ups.local",
+            CONF_USERNAME: "admin",
+            CONF_PASSWORD: "secret",
+        }
+    )
+
+    assert data[CONF_VERIFY_SSL] is False
+
+
+async def test_validate_input_rejects_when_no_ups_devices() -> None:
+    """Test that validation fails when no UPS devices are present."""
     FakeValidationClient.devices = [{"device_id": 2, "model": "SMART1500"}]
     FakeValidationClient.variables = []
 
@@ -448,9 +456,6 @@ async def test_options_flow() -> None:
     result = await flow.async_step_init()
     assert result["type"] == "form"
 
-    result = await flow.async_step_init(
-        {CONF_SCAN_INTERVAL: 60, CONF_ALLOW_UNSUPPORTED_MODEL: True}
-    )
+    result = await flow.async_step_init({CONF_SCAN_INTERVAL: 60})
     assert result["type"] == "create_entry"
     assert result["data"][CONF_SCAN_INTERVAL] == 60
-    assert result["data"][CONF_ALLOW_UNSUPPORTED_MODEL] is True

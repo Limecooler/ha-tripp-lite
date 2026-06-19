@@ -1,4 +1,67 @@
 {
+  "config": {
+    "step": {
+      "user": {
+        "title": "Tripp Lite WebcardLX",
+        "description": "Connect to a WebcardLX installed in a Tripp Lite UPS.",
+        "data": {
+          "url": "IP address",
+          "username": "Username",
+          "password": "Password",
+          "scan_interval": "Polling interval"
+        },
+        "data_description": {
+          "url": "IP address of the WebcardLX card, for example 192.168.1.50.",
+          "username": "The default local username for WebcardLX cards is localadmin."
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Tripp Lite WebcardLX",
+        "data": {
+          "url": "IP address",
+          "username": "Username",
+          "password": "Password"
+        },
+        "data_description": {
+          "url": "IP address of the WebcardLX card, for example 192.168.1.50.",
+          "username": "The default local username for WebcardLX cards is localadmin."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reauthenticate Tripp Lite WebcardLX",
+        "description": "Update the credentials used to connect to the WebcardLX.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        },
+        "data_description": {
+          "username": "The default local username for WebcardLX cards is localadmin."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect.",
+      "invalid_auth": "Invalid authentication.",
+      "invalid_url": "Invalid IP address.",
+      "unsupported_model": "No UPS devices were found on this WebcardLX.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This WebcardLX is already configured.",
+      "reauth_successful": "Reauthentication was successful.",
+      "reconfigure_successful": "Reconfiguration was successful."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Tripp Lite WebcardLX options",
+        "data": {
+          "scan_interval": "Polling interval"
+        }
+      }
+    }
+  },
   "selector": {
     "load_action": {
       "options": {
