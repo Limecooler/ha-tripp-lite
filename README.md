@@ -254,6 +254,37 @@ If authentication fails during setup or polling, Home Assistant starts the reaut
 
 Diagnostics are available from the integration’s device/service page. The diagnostics output includes config entry data and the last coordinator payload with sensitive values redacted, including URLs, usernames, passwords, tokens, authorization headers, serial numbers, MAC addresses, asset tags, location/contact-style fields, and raw alarm/event text.
 
+## Device Smoke Test
+
+The repository includes a command-line smoke test for validating a real WebcardLX card before or during field testing. It uses the same API client and most of the same entity classification helpers as the Home Assistant integration. By default it is read-only: it logs in, checks required and optional endpoints, filters data to supported UPS devices, estimates the entities that Home Assistant would create, and logs out.
+
+Run it from the repository with a Python environment that has the test dependencies installed:
+
+```sh
+WEBCARDLX_PASSWORD='secret' .venv312/bin/python scripts/webcardlx_smoke_test.py \
+  --url https://192.168.1.50 \
+  --username admin \
+  --insecure \
+  --refresh-token-test \
+  --verbose \
+  --report-json /tmp/webcardlx-smoke.json
+```
+
+Use `--insecure` only for a local card with a self-signed certificate. Optional endpoint failures are reported as warnings because permissions and firmware capabilities vary by card; add `--strict` when you want optional endpoint warnings or unsupported-model filtering to fail the run.
+
+Mutation checks are opt-in. Variable updates, alarm acknowledgements, and device-property updates require `--allow-mutations`. Load and UPS power controls also require `--i-understand-power-risk` because they can interrupt connected equipment.
+
+```sh
+WEBCARDLX_PASSWORD='secret' .venv312/bin/python scripts/webcardlx_smoke_test.py \
+  --url https://192.168.1.50 \
+  --username admin \
+  --insecure \
+  --allow-mutations \
+  --set-variable 1234 42
+```
+
+For power-control tests, first run with `--verbose` and inspect the controllable load sample. Then pass explicit WebcardLX IDs, for example `--execute-load LOAD_ID DEVICE_ID cycle`, together with both mutation flags. Avoid power-control smoke tests on production loads unless the attached equipment can be safely interrupted.
+
 ## Troubleshooting
 
 - `cannot_connect`: Confirm the URL, scheme, port, routing, and that PowerAlert Device Manager is reachable from Home Assistant.
