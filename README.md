@@ -10,6 +10,31 @@ The integration uses the local PowerAlert Device Manager REST API documented by 
 
 ## Installation
 
+### HACS
+
+This integration can be installed with HACS as a custom repository.
+
+1. Make sure [HACS](https://www.hacs.xyz/) is installed and configured in Home Assistant.
+2. In Home Assistant, go to **HACS > Integrations**.
+3. Open the three-dot menu and select **Custom repositories**.
+4. Add this repository URL:
+
+   ```text
+   https://github.com/Limecooler/ha-tripp-lite
+   ```
+
+5. Select **Integration** as the category and click **Add**.
+6. Search HACS for **Tripp Lite WebcardLX**.
+7. Select the integration and click **Download**.
+8. Restart Home Assistant.
+9. Go to **Settings > Devices & services > Add integration**.
+10. Search for **Tripp Lite WebcardLX**.
+11. Enter the WebcardLX URL, username, password, and SSL verification preference.
+
+If this repository is private, the GitHub account or token configured in HACS must have access to `Limecooler/ha-tripp-lite`. Public custom repositories do not need additional repository-specific access.
+
+### Manual
+
 1. Copy `custom_components/tripp_lite_webcardlx` into your Home Assistant `custom_components` directory.
 2. Restart Home Assistant.
 3. Go to **Settings > Devices & services > Add integration**.
