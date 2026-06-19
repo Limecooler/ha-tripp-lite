@@ -2,7 +2,7 @@
   "domain": "tripp_lite_webcardlx",
   "name": "Tripp Lite WebcardLX",
   "after_dependencies": ["dhcp"],
-  "codeowners": ["@bill"],
+  "codeowners": ["@Limecooler"],
   "config_flow": true,
   "dhcp": [
     { "hostname": "*webcardlx*" },
@@ -10,10 +10,10 @@
     { "hostname": "*tripplite*" },
     { "hostname": "*tripp-lite*" }
   ],
-  "documentation": "https://github.com/bill/ha-tripp-lite",
+  "documentation": "https://github.com/Limecooler/ha-tripp-lite",
   "integration_type": "device",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/bill/ha-tripp-lite/issues",
+  "issue_tracker": "https://github.com/Limecooler/ha-tripp-lite/issues",
   "loggers": ["custom_components.tripp_lite_webcardlx"],
   "quality_scale": "gold",
   "requirements": [],
