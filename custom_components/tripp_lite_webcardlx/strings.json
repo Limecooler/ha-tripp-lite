@@ -133,6 +133,12 @@
       "temperature": {
         "name": "Temperature"
       },
+      "input_power": {
+        "name": "Input power"
+      },
+      "output_24hr_energy": {
+        "name": "Output energy (24hr)"
+      },
       "critical_alarm_count": {
         "name": "Critical alarms"
       },

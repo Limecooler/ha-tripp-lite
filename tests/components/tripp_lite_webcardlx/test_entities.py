@@ -710,3 +710,117 @@ async def test_ups_power_state_binary_sensor_handle_coordinator_update() -> None
     coordinator.data["variables"].pop("1:18")
     online._handle_coordinator_update()
     assert online.available is False
+
+
+def _make_variable(
+    var_id: str,
+    label_text: str,
+    value: str = "100",
+    suffix: str | None = None,
+    group: str = "VARGROUP_OUTPUT",
+    display_label: str | None = None,
+) -> dict[str, object]:
+    """Build a minimal variable dict for sensor description tests."""
+    v: dict[str, object] = {
+        "id": var_id,
+        "device_id": 1,
+        "device_type": "DEVICE_TYPE_UPS",
+        "label": label_text,
+        "value": value,
+        "data_type": "VARTYPE_INTEGER",
+        "purpose": "VARPURPOSE_STATUS",
+        "group": group,
+    }
+    if suffix is not None:
+        v["suffix"] = suffix
+    if display_label is not None:
+        v["display_label"] = display_label
+    return v
+
+
+def test_sensor_excluded_terms_prevent_wrong_description_matches() -> None:
+    """Variables with excluded terms must not match their related description."""
+    from custom_components.tripp_lite_webcardlx.sensor import _ups_monitor_description
+
+    # "Nominal Input Voltage" must not match input_voltage (excluded: "nominal")
+    assert _ups_monitor_description(
+        _make_variable("a", "Nominal Input Voltage", group="VARGROUP_INPUT")
+    ) is None or _ups_monitor_description(
+        _make_variable("a", "Nominal Input Voltage", group="VARGROUP_INPUT")
+    ).key != "input_voltage"
+
+    # "Input Voltage Minimum" must not match input_voltage (excluded: "minimum")
+    desc = _ups_monitor_description(
+        _make_variable("b", "Input Voltage Minimum", group="VARGROUP_INPUT")
+    )
+    assert desc is None or desc.key != "input_voltage"
+
+    # "Input Voltage Maximum" must not match input_voltage (excluded: "maximum")
+    desc = _ups_monitor_description(
+        _make_variable("c", "Input Voltage Maximum", group="VARGROUP_INPUT")
+    )
+    assert desc is None or desc.key != "input_voltage"
+
+    # "Nominal Input Frequency" must not match input_frequency (excluded: "nominal")
+    desc = _ups_monitor_description(
+        _make_variable("d", "Nominal Input Frequency", group="VARGROUP_INPUT")
+    )
+    assert desc is None or desc.key != "input_frequency"
+
+    # "Bypass Frequency" must not match output_frequency (excluded: "bypass")
+    desc = _ups_monitor_description(
+        _make_variable("e", "Bypass Frequency", group="VARGROUP_OUTPUT")
+    )
+    assert desc is None or desc.key != "output_frequency"
+
+    # "Output Current Maximum" must not match output_current (excluded: "maximum")
+    desc = _ups_monitor_description(_make_variable("f", "Output Current Maximum"))
+    assert desc is None or desc.key != "output_current"
+
+    # "Output Power (KVA)" must not match output_power (excluded: "kva")
+    desc = _ups_monitor_description(_make_variable("g", "Output Power (KVA)", suffix="KVA"))
+    assert desc is None or desc.key != "output_power"
+
+    # "Output Power (KW)" must not match output_power (excluded: "kw")
+    desc = _ups_monitor_description(_make_variable("h", "Output Power (KW)", suffix="KW"))
+    assert desc is None or desc.key != "output_power"
+
+
+def test_sensor_new_descriptions_match_correctly() -> None:
+    """New input_power and output_24hr_energy descriptions must match their variables."""
+    from custom_components.tripp_lite_webcardlx.sensor import _ups_monitor_description
+
+    # input_power should match an input power variable
+    desc = _ups_monitor_description(
+        _make_variable("i", "Input Power", suffix="Watts", group="VARGROUP_INPUT")
+    )
+    assert desc is not None and desc.key == "input_power"
+
+    # output_24hr_energy should match 24-hour rolling energy variables
+    desc = _ups_monitor_description(
+        _make_variable("j", "Output 24hr Energy", suffix="kWh", group="VARGROUP_OUTPUT")
+    )
+    assert desc is not None and desc.key == "output_24hr_energy"
+    assert desc.device_class == "energy"
+    assert desc.state_class == "total"
+
+    desc = _ups_monitor_description(
+        _make_variable("k", "Rolling Energy Output", suffix="kWh", group="VARGROUP_OUTPUT")
+    )
+    assert desc is not None and desc.key == "output_24hr_energy"
+
+
+def test_sensor_fallback_name_uses_full_label() -> None:
+    """Variables that fall through to generic sensors use the full label, not display_label."""
+    from custom_components.tripp_lite_webcardlx.sensor import WebcardLXVariableSensor
+
+    coordinator = FakeCoordinator()
+    # "Output Power (KVA)" has display_label="KVA" but full label should win
+    variable = _make_variable("99", "Output Power (KVA)", suffix="KVA", display_label="KVA")
+    variable["key"] = 999
+    coordinator.data["variables"]["1:99"] = variable
+    entity = WebcardLXVariableSensor(coordinator, variable)
+    # No description should have matched (output_power excludes kva)
+    assert entity._monitor_description is None
+    # Fallback name must be the full label, not the short display_label
+    assert entity._attr_name == "Output Power (KVA)"

@@ -225,6 +225,29 @@ UPS_VARIABLE_SENSOR_DESCRIPTIONS: tuple[UPSVariableSensorDescription, ...] = (
         device_class="temperature",
         suggested_display_precision=1,
     ),
+    UPSVariableSensorDescription(
+        key="input_power",
+        name="Input Power",
+        required_terms=("power",),
+        context_terms=("input",),
+        groups=("VARGROUP_INPUT",),
+        excluded_terms=("apparent", "reactive", "factor", "peak", "kva", "kw"),
+        native_unit_of_measurement="W",
+        device_class="power",
+        suggested_display_precision=0,
+    ),
+    UPSVariableSensorDescription(
+        key="output_24hr_energy",
+        name="Output Energy (24hr)",
+        required_terms=("energy",),
+        any_terms=("24hr", "24 hour", "24-hour", "rolling"),
+        context_terms=("output",),
+        groups=("VARGROUP_OUTPUT",),
+        native_unit_of_measurement="kWh",
+        device_class="energy",
+        state_class="total",
+        suggested_display_precision=2,
+    ),
 )
 
 UPS_STATUS_LABEL_PATTERNS = (
