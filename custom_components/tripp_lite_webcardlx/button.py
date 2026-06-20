@@ -135,15 +135,17 @@ class WebcardLXLoadCycleButton(WebcardLXActionButton):
     @property
     def available(self) -> bool:
         """Return whether the cycle action is currently available."""
+        data = self.coordinator.data
         return super().available and load_action_supported(
-            self.coordinator.data.get("actions_supported", {}),
-            self.coordinator.data.get("loads", {}).get(self._load_key, {}),
+            data.get("actions_supported", {}),
+            data.get("loads", {}).get(self._load_key, {}),
         )
 
     async def async_press(self) -> None:
         """Cycle the load."""
-        load = self.coordinator.data.get("loads", {}).get(self._load_key, {})
-        if not load_action_supported(self.coordinator.data.get("actions_supported", {}), load):
+        data = self.coordinator.data
+        load = data.get("loads", {}).get(self._load_key, {})
+        if not load_action_supported(data.get("actions_supported", {}), load):
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
                 translation_key="load_action_not_supported",

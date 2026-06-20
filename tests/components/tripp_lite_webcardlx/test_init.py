@@ -429,12 +429,22 @@ async def test_unload_reload_and_stale_device_cleanup(
     assert await integration.async_unload_entry(hass, entry)
     assert client.logout_calls == 1
 
+    # Test that cancel_stale_listener is called before platform unload.
+    cancelled: list[bool] = []
+    entry.runtime_data = WebcardLXRuntimeData(client=client, coordinator=coordinator)
+    entry.runtime_data.cancel_stale_listener = lambda: cancelled.append(True)
+    assert await integration.async_unload_entry(hass, entry)
+    assert cancelled == [True]
+    assert client.logout_calls == 2
+
+    entry.runtime_data = WebcardLXRuntimeData(client=client, coordinator=coordinator)
+
     async def unload_platforms_failed(entry_arg: Any, platforms: Any) -> bool:
         return False
 
     monkeypatch.setattr(hass.config_entries, "async_unload_platforms", unload_platforms_failed)
     assert not await integration.async_unload_entry(hass, entry)
-    assert client.logout_calls == 1
+    assert client.logout_calls == 2
 
     reloaded: list[str] = []
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
+from homeassistant.core import callback
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC, DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -30,29 +31,27 @@ class WebcardLXEntity(CoordinatorEntity[WebcardLXDataUpdateCoordinator]):
         self._device_id = device_id_value
         self._device_info_load_key = load_key_value
         self._load_for_device_info = dict(load_attributes or {})
+        self._cached_device: Mapping[str, Any] = (
+            coordinator.data.get("devices", {}).get(device_id_value, {})
+            if coordinator.data
+            else {}
+        )
+        self._attr_device_info = self._build_device_info()
 
-    @property
-    def _device(self) -> Mapping[str, Any]:
-        """Return device attributes."""
-        return self.coordinator.data.get("devices", {}).get(self._device_id, {})
-
-    @property
-    def _load(self) -> Mapping[str, Any]:
-        """Return load attributes."""
-        if self._device_info_load_key is None:
-            return {}
-        return self.coordinator.data.get("loads", {}).get(self._device_info_load_key, {})
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device registry information."""
+    def _build_device_info(self) -> DeviceInfo:
+        """Build and return device registry information."""
         if self._device_info_load_key is not None:
+            current_load = (
+                self.coordinator.data.get("loads", {}).get(self._device_info_load_key, {})
+                if self.coordinator.data
+                else {}
+            )
             return load_device_info(
                 self.coordinator.config_entry.unique_id,
                 self._device_id,
-                self._load or self._load_for_device_info,
+                current_load or self._load_for_device_info,
             )
-        device = self._device
+        device = self._cached_device
         serial_number = str(device.get("serial_number") or "").strip()
         return DeviceInfo(
             identifiers=device_identifiers(
@@ -67,6 +66,25 @@ class WebcardLXEntity(CoordinatorEntity[WebcardLXDataUpdateCoordinator]):
             sw_version=str(device.get("protocol") or "") or None,
             configuration_url=self.coordinator.client.base_url,
         )
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator and refresh cached state."""
+        self._cached_device = self.coordinator.data.get("devices", {}).get(self._device_id, {})
+        self._attr_device_info = self._build_device_info()
+        super()._handle_coordinator_update()
+
+    @property
+    def _device(self) -> Mapping[str, Any]:
+        """Return device attributes."""
+        return self._cached_device
+
+    @property
+    def _load(self) -> Mapping[str, Any]:
+        """Return load attributes."""
+        if self._device_info_load_key is None:
+            return {}
+        return self.coordinator.data.get("loads", {}).get(self._device_info_load_key, {})
 
 
 def entity_device_id(attributes: Mapping[str, Any]) -> str:

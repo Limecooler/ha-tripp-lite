@@ -17,5 +17,5 @@
   "loggers": ["custom_components.tripp_lite_webcardlx"],
   "quality_scale": "gold",
   "requirements": [],
-  "version": "0.2.2"
+  "version": "0.2.3"
 }

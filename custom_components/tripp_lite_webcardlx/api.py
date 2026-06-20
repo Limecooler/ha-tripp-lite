@@ -116,6 +116,9 @@ def data_list(payload: Mapping[str, Any]) -> list[dict[str, Any]]:
 
 def data_object(payload: Mapping[str, Any]) -> dict[str, Any]:
     """Return the response data as flattened resource attributes."""
+    data = payload.get("data")
+    if isinstance(data, Mapping):
+        return _jsonapi_attributes(data)
     items = data_list(payload)
     return items[0] if items else {}
 
@@ -139,6 +142,11 @@ class WebcardLXClient:
         self.refresh_token: str | None = None
         self._refresh_lock = asyncio.Lock()
         self._timeout = ClientTimeout(total=REQUEST_TIMEOUT, connect=REQUEST_CONNECT_TIMEOUT)
+        self._base_headers: dict[str, str] = {
+            "Accept": JSON_API_CONTENT_TYPE,
+            "Content-Type": JSON_API_CONTENT_TYPE,
+            "Accept-Version": API_VERSION,
+        }
 
     async def async_login(self) -> None:
         """Authenticate and store access tokens."""
@@ -203,19 +211,19 @@ class WebcardLXClient:
         async with self._refresh_lock:
             if not self.refresh_token:
                 return
-            try:
-                await self._request(
-                    "POST",
-                    "/api/oauth/token/logout",
-                    auth=False,
-                    content_type="application/json",
-                    bearer=self.refresh_token,
-                )
-            except WebcardLXError:
-                _LOGGER.debug("Ignoring WebcardLX logout failure", exc_info=True)
-            finally:
-                self.access_token = None
-                self.refresh_token = None
+            rt = self.refresh_token
+            self.access_token = None
+            self.refresh_token = None
+        try:
+            await self._request(
+                "POST",
+                "/api/oauth/token/logout",
+                auth=False,
+                content_type="application/json",
+                bearer=rt,
+            )
+        except WebcardLXError:
+            _LOGGER.debug("Ignoring WebcardLX logout failure", exc_info=True)
 
     async def async_get_devices(self) -> list[dict[str, Any]]:
         """Return all device records."""
@@ -416,11 +424,9 @@ class WebcardLXClient:
     ) -> dict[str, Any]:
         """Make an API request."""
         url = f"{self.base_url}{path}"
-        headers = {
-            "Accept": JSON_API_CONTENT_TYPE,
-            "Content-Type": content_type,
-            "Accept-Version": API_VERSION,
-        }
+        headers = dict(self._base_headers)
+        if content_type != JSON_API_CONTENT_TYPE:
+            headers["Content-Type"] = content_type
         token = bearer or (self.access_token if auth else None)
         if token:
             headers["Authorization"] = f"Bearer {token}"
@@ -443,6 +449,7 @@ class WebcardLXClient:
                         json=json,
                         params=params,
                         allow_404=allow_404,
+                        content_type=content_type,
                         _retried=True,
                     )
                 return await self._handle_response(response, allow_404, auth=auth)
@@ -476,7 +483,7 @@ class WebcardLXClient:
         if response.status == 204:
             return {}
         try:
-            payload = await response.json(content_type=None)
+            payload = await response.json(content_type=None, encoding="utf-8")
         except Exception as err:  # noqa: BLE001 - include malformed device responses.
             text = await response.text()
             _LOGGER.debug(
@@ -489,5 +496,5 @@ class WebcardLXClient:
                 f"Invalid JSON response: {text[:500]}",
             ) from err
         if isinstance(payload, Mapping):
-            return dict(payload)
+            return payload  # type: ignore[return-value]
         raise WebcardLXApiError(response.status, "Response JSON was not an object")

@@ -74,6 +74,7 @@ class WebcardLXVariableSelect(WebcardLXEntity, SelectEntity):
         """Initialize the select entity."""
         self._variable_key = variable_key(variable)
         self._attr_name = label(variable, "Setting")
+        self._attr_options: list[str] = enum_options(variable)
         device_id_value = entity_device_id(variable)
         super().__init__(coordinator, device_id_value)
         self._attr_unique_id = (
@@ -92,11 +93,6 @@ class WebcardLXVariableSelect(WebcardLXEntity, SelectEntity):
         return super().available and _is_select_variable(self._variable)
 
     @property
-    def options(self) -> list[str]:
-        """Return available options."""
-        return enum_options(self._variable)
-
-    @property
     def current_option(self) -> str | None:
         """Return the current option."""
         value = raw_value(self._variable)
@@ -104,13 +100,14 @@ class WebcardLXVariableSelect(WebcardLXEntity, SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         """Select an option."""
-        if option not in self.options:
+        var = self._variable
+        if not _is_select_variable(var) or option not in self.options:
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
                 translation_key="invalid_select_option",
             )
         try:
-            await self.coordinator.client.async_update_variable(variable_id(self._variable), option)
+            await self.coordinator.client.async_update_variable(variable_id(var), option)
         except Exception as err:
             raise HomeAssistantError(
                 translation_domain=DOMAIN,

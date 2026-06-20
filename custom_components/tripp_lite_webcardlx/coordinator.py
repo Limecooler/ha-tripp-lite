@@ -45,6 +45,7 @@ class WebcardLXRuntimeData:
 
     client: WebcardLXClient
     coordinator: WebcardLXDataUpdateCoordinator
+    cancel_stale_listener: Any = None
 
 
 WebcardLXData = dict[str, Any]
@@ -83,7 +84,9 @@ class WebcardLXDataUpdateCoordinator(DataUpdateCoordinator[WebcardLXData]):
         self._last_optional_data: dict[str, Any] = {}
         self._static_data: dict[str, Any] = {}
         self._events: dict[str, Any] = {}
+        # 0.0 ensures first poll always fetches static/events data unconditionally.
         self._next_static_refresh = 0.0
+        # 0.0 ensures first poll always fetches static/events data unconditionally.
         self._next_events_refresh = 0.0
 
     async def _async_update_data(self) -> WebcardLXData:
@@ -110,8 +113,10 @@ class WebcardLXDataUpdateCoordinator(DataUpdateCoordinator[WebcardLXData]):
     async def _async_fetch_data(self) -> WebcardLXData:
         """Fetch and normalize all integration data."""
         now = monotonic()
-        devices = await self.client.async_get_devices()
-        variables = await self.client.async_get_variables()
+        devices, variables = await asyncio.gather(
+            self.client.async_get_devices(),
+            self.client.async_get_variables(),
+        )
 
         if not self._static_data or now >= self._next_static_refresh:
             self._static_data = await self._async_fetch_static_data()
@@ -119,11 +124,14 @@ class WebcardLXDataUpdateCoordinator(DataUpdateCoordinator[WebcardLXData]):
 
         control_variables = self._static_data.get("control_variables", [])
         if control_variables:
-            by_id = {variable_key(item): item for item in variables if variable_key(item)}
+            by_id = {key: item for item in variables if (key := variable_key(item))}
             for item in control_variables:
-                item_id = variable_key(item)
-                if item_id:
-                    by_id[item_id] = {**by_id.get(item_id, {}), **item}
+                key = variable_key(item)
+                if key:
+                    if key in by_id:
+                        by_id[key] = {**by_id[key], **item}
+                    else:
+                        by_id[key] = item
             variables = list(by_id.values())
 
         active_device_ids = supported_device_ids(

@@ -154,20 +154,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await client.async_logout()
         raise
     entry.async_on_unload(entry.add_update_listener(_async_reload_entry))
-    entry.async_on_unload(
-        coordinator.async_add_listener(
-            lambda: hass.async_create_task(_async_remove_stale_devices(hass, entry, coordinator))
-        )
+    cancel_stale_listener = coordinator.async_add_listener(
+        lambda: hass.async_create_task(_async_remove_stale_devices(hass, entry, coordinator))
     )
+    runtime_data.cancel_stale_listener = cancel_stale_listener
 
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
+    runtime_data: WebcardLXRuntimeData = entry.runtime_data
+    # Cancel the coordinator listener before unloading platforms so it does not
+    # fire stale-device cleanup while entities are being torn down.
+    cancel = getattr(runtime_data, "cancel_stale_listener", None)
+    if cancel is not None:
+        cancel()
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
-        runtime_data: WebcardLXRuntimeData = entry.runtime_data
         await runtime_data.client.async_logout()
         entry.runtime_data = None
     return unload_ok
@@ -387,9 +391,10 @@ async def _load_targets_from_call(
     call: ServiceCall,
 ) -> list[tuple[WebcardLXRuntimeData, dict[str, Any]]]:
     """Resolve targeted load switch entities."""
+    entity_registry = er.async_get(hass)
     targets = []
     for entity_id in sorted(await service_helper.async_extract_entity_ids(hass, call)):
-        entity_entry = _entity_entry_from_id(hass, entity_id)
+        entity_entry = entity_registry.async_get(entity_id)
         entity_domain = str(entity_id).split(".", 1)[0]
         if entity_domain != "switch" or entity_entry is None:
             raise _service_error("invalid_target")
@@ -408,9 +413,10 @@ async def _variable_targets_from_call(
     call: ServiceCall,
 ) -> list[tuple[WebcardLXRuntimeData, str, dict[str, Any]]]:
     """Resolve targeted variable configuration entities."""
+    entity_registry = er.async_get(hass)
     targets = []
     for entity_id in sorted(await service_helper.async_extract_entity_ids(hass, call)):
-        entity_entry = _entity_entry_from_id(hass, entity_id)
+        entity_entry = entity_registry.async_get(entity_id)
         entity_domain = str(entity_id).split(".", 1)[0]
         if entity_domain not in VARIABLE_ENTITY_DOMAINS or entity_entry is None:
             raise _service_error("invalid_target")
@@ -465,11 +471,6 @@ def _device_targets_from_call(
         if not found:
             raise _service_error("invalid_target")
     return targets
-
-
-def _entity_entry_from_id(hass: HomeAssistant, entity_id: str) -> Any:
-    """Return an entity registry entry."""
-    return er.async_get(hass).async_get(entity_id)
 
 
 def _runtime_data_from_entity_entry(

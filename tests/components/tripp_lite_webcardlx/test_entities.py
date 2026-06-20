@@ -652,3 +652,61 @@ def test_base_entity_device_info_fallback() -> None:
     assert device_connections({"mac": "AA:BB:CC"}) == {("mac", "aa:bb:cc")}
     assert device_connections({"mac_address": "00:11:22"}) == {("mac", "00:11:22")}
     assert device_connections({}) == set()
+
+
+def test_handle_coordinator_update_refreshes_cache() -> None:
+    """Test that _handle_coordinator_update refreshes cached device and device_info."""
+    coordinator = FakeCoordinator()
+    entity = WebcardLXEntity(coordinator, "1")
+    # Verify initial cached device has the right name.
+    assert entity._device.get("name") == "UPS"
+    # Simulate a coordinator update that changes the device name.
+    # Patch async_write_ha_state since hass is not set in unit tests.
+    entity.async_write_ha_state = lambda: None  # type: ignore[method-assign]
+    coordinator.data["devices"]["1"]["name"] = "Updated UPS"
+    entity._handle_coordinator_update()
+    assert entity._device.get("name") == "Updated UPS"
+    assert entity.device_info["name"] == "Updated UPS"
+
+    # Test with a load entity.
+    load_data = coordinator.data["loads"]["1:1"]
+    child = WebcardLXEntity(coordinator, "1", "1:1", load_data)
+    child.async_write_ha_state = lambda: None  # type: ignore[method-assign]
+    coordinator.data["loads"]["1:1"]["name"] = "Renamed Load"
+    child._handle_coordinator_update()
+    assert child.device_info["name"] == "Renamed Load"
+
+
+async def test_ups_status_sensor_handle_coordinator_update() -> None:
+    """Test WebcardLXUPSStatusSensor._handle_coordinator_update refreshes the status variable."""
+    entities, coordinator, _entry = await setup_platform(sensor)
+    status_sensor = next(entity for entity in entities if entity.name == "Status")
+    # Patch async_write_ha_state since hass is not set in unit tests.
+    status_sensor.async_write_ha_state = lambda: None  # type: ignore[method-assign]
+    # Initial state: UPS Status variable "1:18" is used (value "Online").
+    assert status_sensor.native_value == "Online"
+    # Simulate coordinator update — update the variable value and trigger the callback.
+    coordinator.data["variables"]["1:18"]["value"] = "On Battery"
+    status_sensor._handle_coordinator_update()
+    assert status_sensor.native_value == "On Battery"
+    # Remove the status variable and trigger update — sensor should become unavailable.
+    coordinator.data["variables"].pop("1:18")
+    status_sensor._handle_coordinator_update()
+    assert status_sensor.available is False
+
+
+async def test_ups_power_state_binary_sensor_handle_coordinator_update() -> None:
+    """Test WebcardLXUPSPowerStateBinarySensor._handle_coordinator_update."""
+    entities, coordinator, _entry = await setup_platform(binary_sensor)
+    online = next(entity for entity in entities if entity.name == "Online")
+    # Patch async_write_ha_state since hass is not set in unit tests.
+    online.async_write_ha_state = lambda: None  # type: ignore[method-assign]
+    assert online.is_on is True
+    # Update the underlying variable value and trigger coordinator update.
+    coordinator.data["variables"]["1:18"]["value"] = "On Battery Discharging"
+    online._handle_coordinator_update()
+    assert online.is_on is False
+    # Remove the power-state variable — sensor should become unavailable.
+    coordinator.data["variables"].pop("1:18")
+    online._handle_coordinator_update()
+    assert online.available is False

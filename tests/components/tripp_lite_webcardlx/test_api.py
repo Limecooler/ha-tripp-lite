@@ -98,7 +98,7 @@ class FakeResponse:
     async def __aexit__(self, *args: object) -> None:
         """Exit async context."""
 
-    async def json(self, content_type: str | None = None) -> object:
+    async def json(self, content_type: str | None = None, encoding: str | None = None) -> object:
         """Return a token response."""
         if isinstance(self.payload, Exception):
             raise self.payload
@@ -428,7 +428,7 @@ async def test_oauth_endpoints_use_json_content_type() -> None:
     await client.async_logout()
 
     oauth_paths = {"/api/oauth/token", "/api/oauth/refresh", "/api/oauth/token/logout"}
-    for method, path, kwargs in session.calls:
+    for _method, path, kwargs in session.calls:
         if path in oauth_paths:
             ct = kwargs.get("headers", {}).get("Content-Type", "")
             assert ct == "application/json", (

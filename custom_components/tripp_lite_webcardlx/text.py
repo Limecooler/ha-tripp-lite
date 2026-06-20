@@ -104,13 +104,14 @@ class WebcardLXVariableText(WebcardLXEntity, TextEntity):
 
     async def async_set_value(self, value: str) -> None:
         """Set the text value."""
-        if not _is_text_variable(self._variable):
+        var = self._variable
+        if not _is_text_variable(var):
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
                 translation_key="variable_not_editable",
             )
         try:
-            await self.coordinator.client.async_update_variable(variable_id(self._variable), value)
+            await self.coordinator.client.async_update_variable(variable_id(var), value)
         except Exception as err:
             raise HomeAssistantError(
                 translation_domain=DOMAIN,

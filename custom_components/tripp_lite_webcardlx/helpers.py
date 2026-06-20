@@ -12,6 +12,10 @@ from homeassistant.util import slugify
 from .api import normalize_model
 from .const import SUPPORTED_UPS_MODELS, SUPPORTS_UPDATE
 
+_NORMALIZED_SUPPORTED_MODELS: frozenset[str] = frozenset(
+    normalize_model(m) for m in SUPPORTED_UPS_MODELS
+)
+
 TRUTHY = {"1", "true", "yes", "on", "enabled", "enable", "active"}
 FALSY = {"0", "false", "no", "off", "disabled", "disable", "inactive"}
 SENSITIVE_TEXT_TERMS = {
@@ -189,7 +193,7 @@ def label(attributes: Mapping[str, Any], fallback: str) -> str:
 def is_supported_model(model: str | None) -> bool:
     """Return whether the model is one of the explicitly supported UPS models."""
     normalized = normalize_model(model)
-    return any(supported in normalized for supported in SUPPORTED_UPS_MODELS)
+    return any(s in normalized for s in _NORMALIZED_SUPPORTED_MODELS)
 
 
 def supported_device_ids(
@@ -220,11 +224,7 @@ def supported_device_ids(
 def discovered_models(devices: Iterable[Mapping[str, Any]]) -> list[str]:
     """Return discovered model names."""
     models = sorted(
-        {
-            str(device.get("model", "")).strip()
-            for device in devices
-            if str(device.get("model", "")).strip()
-        }
+        {m for device in devices if (m := str(device.get("model", "")).strip())}
     )
     return models
 

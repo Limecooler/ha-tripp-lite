@@ -26,12 +26,6 @@ SUPPORTED_UPS_MODELS = {
     "SU1500RTXL2UA",
 }
 
-SUPPORTED_UPS_MODEL_NAMES = (
-    "SU1000XLA",
-    "SU1500RTXL2U",
-    "SU1500RTXL2UA",
-)
-
 PLATFORMS = [
     "binary_sensor",
     "button",

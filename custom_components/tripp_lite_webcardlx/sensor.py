@@ -389,14 +389,21 @@ class WebcardLXUPSStatusSensor(WebcardLXEntity, SensorEntity):
         device_id_value = entity_device_id(variable)
         super().__init__(coordinator, device_id_value)
         self._attr_unique_id = f"{coordinator.config_entry.unique_id}_{device_id_value}_ups_status"
+        self._cached_status_var: Mapping[str, Any] = variable
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._cached_status_var = _best_status_variable_for_device(
+            self.coordinator.data.get("variables", {}).values(),
+            self._device_id,
+        )
+        super()._handle_coordinator_update()
 
     @property
     def _variable(self) -> Mapping[str, Any]:
         """Return current status variable attributes."""
-        return _best_status_variable_for_device(
-            self.coordinator.data.get("variables", {}).values(),
-            self._device_id,
-        )
+        return self._cached_status_var
 
     @property
     def available(self) -> bool:

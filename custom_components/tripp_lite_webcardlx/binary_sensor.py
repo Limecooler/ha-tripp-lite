@@ -151,14 +151,21 @@ class WebcardLXUPSPowerStateBinarySensor(WebcardLXEntity, BinarySensorEntity):
         self._attr_unique_id = (
             f"{coordinator.config_entry.unique_id}_{device_id_value}_ups_power_state_{kind}"
         )
+        self._cached_power_state_var: Mapping[str, Any] = variable
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._cached_power_state_var = _best_power_state_variable_for_device(
+            self.coordinator.data.get("variables", {}).values(),
+            self._device_id,
+        )
+        super()._handle_coordinator_update()
 
     @property
     def _variable(self) -> Mapping[str, Any]:
         """Return current power-state variable attributes."""
-        return _best_power_state_variable_for_device(
-            self.coordinator.data.get("variables", {}).values(),
-            self._device_id,
-        )
+        return self._cached_power_state_var
 
     @property
     def available(self) -> bool:

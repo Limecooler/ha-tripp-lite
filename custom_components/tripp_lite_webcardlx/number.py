@@ -108,8 +108,11 @@ class WebcardLXVariableNumber(WebcardLXEntity, NumberEntity):
 
     @property
     def available(self) -> bool:
-        """Return whether the variable exists."""
-        return super().available and _is_number_variable(self._variable)
+        """Return whether the variable still exists in coordinator data."""
+        return (
+            super().available
+            and self._variable_key in self.coordinator.data.get("variables", {})
+        )
 
     @property
     def native_value(self) -> float | None:
