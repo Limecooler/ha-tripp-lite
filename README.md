@@ -50,19 +50,23 @@ This integration can be installed with HACS as a custom repository.
 6. Search HACS for **Tripp Lite WebcardLX**.
 7. Select the integration and click **Download**.
 8. Restart Home Assistant.
-9. Go to **Settings > Devices & services > Add integration**.
-10. Search for **Tripp Lite WebcardLX**.
-11. Enter the IP address, username, and password. The default local username for these cards is `localadmin`.
 
-If this repository is private, the GitHub account or token configured in HACS must have access to `Limecooler/ha-tripp-lite`. Public custom repositories do not need additional repository-specific access.
+After restart, if a WebcardLX card is on the same network, it may appear automatically as a discovered device in **Settings > Devices & services**. If not, add it manually:
+
+- Go to **Settings > Devices & services > Add integration**.
+- Search for **Tripp Lite WebcardLX**.
+- Enter the IP address, username, and password. The default local username for these cards is `localadmin`.
 
 ### Manual
 
 1. Copy `custom_components/tripp_lite_webcardlx` into your Home Assistant `custom_components` directory.
 2. Restart Home Assistant.
-3. Go to **Settings > Devices & services > Add integration**.
-4. Search for **Tripp Lite WebcardLX**.
-5. Enter the IP address, username, and password. The default local username for these cards is `localadmin`.
+
+After restart, if a WebcardLX card is on the same network, it may appear automatically as a discovered device in **Settings > Devices & services**. If not, add it manually:
+
+- Go to **Settings > Devices & services > Add integration**.
+- Search for **Tripp Lite WebcardLX**.
+- Enter the IP address, username, and password. The default local username for these cards is `localadmin`.
 
 ## Prerequisites And Permissions
 
@@ -78,9 +82,30 @@ The polling interval can be adjusted in integration options.
 
 ## Discovery And Identity
 
-DHCP discovery is intentionally narrow and matches WebcardLX-style Tripp Lite hostnames instead of broad Eaton hostnames. When possible, the integration uses the WebcardLX MAC address, serial number, and system details to keep rediscovery tied to the same card and to update the network URL only for matching registered devices.
+### Automatic DHCP Discovery
 
-UPS devices always get stable fallback identifiers and serial numbers when the card reports them. The WebcardLX card MAC is used for discovery/config-entry identity, but it is not attached to every UPS device because one card can report multiple UPS devices. Non-main controllable loads/outlets are represented as child devices linked to the UPS device; the main output remains on the UPS device.
+WebcardLX cards are detected automatically via DHCP using two independent signals, so discovery works regardless of how a site has named or numbered its cards:
+
+**Hostname patterns** — HA watches for DHCP leases whose hostname contains any of:
+
+- `webcardlx`
+- `poweralert`
+- `tripplite`
+- `tripp-lite`
+
+**MAC address OUI** — Tripp Lite's registered hardware OUI is `00:06:67`. Any WebcardLX card that uses factory-default MAC allocation is detected even when its hostname has been customized to something that does not match the hostname patterns.
+
+When a previously unseen card appears, HA creates a notification and opens the setup flow with the discovered IP address pre-filled. The user provides the username and password to complete setup.
+
+When a card that is already configured sends a DHCP lease, HA silently updates the stored IP address if it changed. No user interaction is required. This keeps the integration connected when a card's DHCP lease renews to a different address.
+
+### Config Entry Identity
+
+The integration tries to pin each config entry to a unique identifier in priority order: MAC address, serial number, asset tag, URL. The MAC address is the most reliable anchor for DHCP-discovered cards because it is stable across firmware updates and IP changes.
+
+The WebcardLX card MAC is used for config entry identity but is not attached to every UPS device, because one card can report multiple UPS devices. UPS device identity uses the device serial number as the primary stable identifier, with a fallback to config entry + device ID when the card does not report one.
+
+Non-main controllable loads and outlets are represented as child devices linked to the UPS device. The main output remains on the UPS device itself.
 
 ## Entities
 
@@ -94,7 +119,9 @@ Primary UPS monitor sensors are created from `/api/variables` when the card repo
 - Runtime remaining
 - Battery capacity and battery voltage
 - Input voltage, current, and frequency
+- Input power (W)
 - Output voltage, current, frequency, power, apparent power, reactive power, power factor, and utilization
+- Output energy — 24-hour rolling total (kWh), reported as `total` state class for the HA energy dashboard
 - Temperature
 
 Additional readable UPS variables are exposed dynamically as sensors when they are not passwords, not empty, not editable settings, and not better represented as binary sensors.

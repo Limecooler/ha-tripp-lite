@@ -289,6 +289,39 @@ async def test_dhcp_step_prefills_discovery() -> None:
     assert flow._unique_id == "aa:bb:cc"
     assert flow.context["title_placeholders"] == {"name": "ups-card"}
     assert flow._discovered_url == "https://192.0.2.10"
+    # When device is already configured, the URL is updated to the newly-discovered IP
+    assert flow._configured_updates == {CONF_URL: "https://192.0.2.10"}
+
+
+async def test_dhcp_step_tripp_lite_oui_mac() -> None:
+    """DHCP discovery with a real Tripp Lite OUI MAC (000667*) works correctly."""
+    flow = make_flow()
+
+    result = await flow.async_step_dhcp(
+        SimpleNamespace(
+            ip="192.168.1.50",
+            hostname="webcardlx",
+            macaddress="00:06:67:43:17:02",
+        )
+    )
+
+    assert result["type"] == "form"
+    assert flow._unique_id == "00:06:67:43:17:02"
+    assert flow._discovered_url == "https://192.168.1.50"
+    assert flow._configured_updates == {CONF_URL: "https://192.168.1.50"}
+
+
+async def test_dhcp_step_no_mac_skips_unique_id() -> None:
+    """DHCP discovery without a MAC address does not set unique ID or abort."""
+    flow = make_flow()
+
+    result = await flow.async_step_dhcp(
+        SimpleNamespace(ip="192.0.2.10", hostname="ups-card", macaddress=None)
+    )
+
+    assert result["type"] == "form"
+    assert flow._unique_id is None
+    assert flow._configured_updates is None
 
 
 async def test_reconfigure_step_form_success_and_errors(monkeypatch: pytest.MonkeyPatch) -> None:
