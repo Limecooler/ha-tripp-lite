@@ -46,8 +46,13 @@ async def async_setup_entry(
     @callback
     def async_add_new_entities() -> None:
         entities: list[SwitchEntity] = []
+        cached_load_ids = coordinator.data.get("_controllable_load_ids")
         for load in coordinator.data.get("loads", {}).values():
-            if not load_action_supported(coordinator.data.get("actions_supported", {}), load):
+            if not load_action_supported(
+                coordinator.data.get("actions_supported", {}),
+                load,
+                cached_load_ids,
+            ):
                 continue
             entity = WebcardLXLoadSwitch(coordinator, load)
             if entity.unique_id not in known_unique_ids:
@@ -111,6 +116,7 @@ class WebcardLXLoadSwitch(WebcardLXEntity, SwitchEntity):
             and load_action_supported(
                 self.coordinator.data.get("actions_supported", {}),
                 self._load,
+                self.coordinator.data.get("_controllable_load_ids"),
             )
         )
 
@@ -142,7 +148,11 @@ class WebcardLXLoadSwitch(WebcardLXEntity, SwitchEntity):
     async def _async_execute(self, action: str) -> None:
         """Execute a load action."""
         load = self._load
-        if not load_action_supported(self.coordinator.data.get("actions_supported", {}), load):
+        if not load_action_supported(
+            self.coordinator.data.get("actions_supported", {}),
+            load,
+            self.coordinator.data.get("_controllable_load_ids"),
+        ):
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
                 translation_key="load_action_not_supported",

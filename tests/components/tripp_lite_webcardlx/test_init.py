@@ -670,6 +670,16 @@ async def test_service_validation_and_error_branches(
         is None
     )
 
+    # Fast-path O(1) lookup via pre-computed reverse maps.
+    coordinator.data["_load_uid_map"] = {"entry_1_load_main_switch": "1:main"}
+    coordinator.data["_variable_uid_map"] = {"entry_1_variable_4_number": "1:4"}
+    assert integration._load_from_unique_id(runtime_data, "entry", "entry_1_load_main_switch") is not None
+    assert integration._load_from_unique_id(runtime_data, "entry", "entry_1_load_absent_switch") is None
+    assert integration._variable_from_unique_id(runtime_data, "entry", "entry_1_variable_4_number", "number") is not None
+    assert integration._variable_from_unique_id(runtime_data, "entry", "entry_1_variable_missing_number", "number") is None
+    del coordinator.data["_load_uid_map"]
+    del coordinator.data["_variable_uid_map"]
+
     with pytest.raises(ServiceValidationError):
         integration._validated_variable_value("select", {"enum_values": ["A"]}, "B")
     assert integration._validated_variable_value("select", {"enum_values": ["A"]}, "A") == "A"

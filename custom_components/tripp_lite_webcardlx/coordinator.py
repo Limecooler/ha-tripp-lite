@@ -22,21 +22,31 @@ from .api import (
     WebcardLXUnsupportedModel,
 )
 from .const import (
+    ALARMS_REFRESH_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     EVENTS_REFRESH_INTERVAL,
     STATIC_DATA_REFRESH_INTERVAL,
 )
 from .helpers import (
+    action_load_ids,
     device_id,
     discovered_models,
+    is_editable_variable,
+    is_main_load,
     is_sensitive_attributes,
+    load_id,
     load_key,
+    stable_unique_suffix,
     supported_device_ids,
     variable_key,
+    variable_unique_key,
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+# Entity domains that create variable-based config entities.
+_VARIABLE_ENTITY_DOMAINS = ("switch", "number", "select", "text")
 
 
 @dataclass
@@ -84,10 +94,13 @@ class WebcardLXDataUpdateCoordinator(DataUpdateCoordinator[WebcardLXData]):
         self._last_optional_data: dict[str, Any] = {}
         self._static_data: dict[str, Any] = {}
         self._events: dict[str, Any] = {}
-        # 0.0 ensures first poll always fetches static/events data unconditionally.
+        self._alarms: dict[str, Any] = {}
+        # 0.0 ensures first poll always fetches static/events/alarms data unconditionally.
         self._next_static_refresh = 0.0
-        # 0.0 ensures first poll always fetches static/events data unconditionally.
+        # 0.0 ensures first poll always fetches static/events/alarms data unconditionally.
         self._next_events_refresh = 0.0
+        # 0.0 ensures first poll always fetches static/events/alarms data unconditionally.
+        self._next_alarms_refresh = 0.0
 
     async def _async_update_data(self) -> WebcardLXData:
         """Fetch data from the WebcardLX."""
@@ -155,10 +168,9 @@ class WebcardLXDataUpdateCoordinator(DataUpdateCoordinator[WebcardLXData]):
             and not is_sensitive_attributes(variable)
         }
 
-        loads, alarm_summary, alarms, ready, system_uptime = await asyncio.gather(
+        loads, alarm_summary, ready, system_uptime = await asyncio.gather(
             self._async_optional("loads", self.client.async_get_loads, []),
             self._async_optional("alarm_summary", self.client.async_get_alarm_summary, {}),
-            self._async_optional("alarms", self.client.async_get_alarms, []),
             self._async_optional("ready", self.client.async_get_ready, {}),
             self._async_optional("system_uptime", self.client.async_get_system_uptime, {}),
         )
@@ -178,23 +190,53 @@ class WebcardLXDataUpdateCoordinator(DataUpdateCoordinator[WebcardLXData]):
             }
             self._next_events_refresh = now + EVENTS_REFRESH_INTERVAL
 
+        if not self._alarms or now >= self._next_alarms_refresh:
+            self._alarms = {
+                str(alarm.get("id")): alarm
+                for alarm in await self._async_optional("alarms", self.client.async_get_alarms, [])
+                if alarm.get("id") not in (None, "")
+            }
+            self._next_alarms_refresh = now + ALARMS_REFRESH_INTERVAL
+
+        actions_supported = self._static_data.get("actions_supported", {})
+        controllable_load_ids = action_load_ids(actions_supported)
+
+        entry_unique_id = self.config_entry.unique_id or ""
+        load_uid_map: dict[str, str] = {}
+        for lkey, load in filtered_loads.items():
+            device_id_value = str(load.get("device_id") or "")
+            suffix = "main" if is_main_load(load) else stable_unique_suffix(load_id(load), "load")
+            uid = f"{entry_unique_id}_{device_id_value}_load_{suffix}_switch"
+            load_uid_map[uid] = lkey
+
+        variable_uid_map: dict[str, str] = {}
+        for vkey, variable in filtered_variables.items():
+            if variable.get("password") or not is_editable_variable(variable):
+                continue
+            device_id_value = str(variable.get("device_id") or "")
+            vunique_key = variable_unique_key(variable)
+            for entity_domain in _VARIABLE_ENTITY_DOMAINS:
+                uid = (
+                    f"{entry_unique_id}_{device_id_value}_variable_{vunique_key}_{entity_domain}"
+                )
+                variable_uid_map[uid] = vkey
+
         data: WebcardLXData = {
             "devices": filtered_devices,
             "variables": filtered_variables,
             "loads": filtered_loads,
             "load_groups": self._filtered_load_groups(active_device_ids),
-            "actions_supported": self._static_data.get("actions_supported", {}),
+            "actions_supported": actions_supported,
             "schedules_supported": self._static_data.get("schedules_supported", {}),
             "alarm_summary": alarm_summary,
-            "alarms": {
-                str(alarm.get("id")): alarm
-                for alarm in alarms
-                if alarm.get("id") not in (None, "")
-            },
+            "alarms": self._alarms,
             "events": self._events,
             "ready": ready,
             "system_details": self._static_data.get("system_details", {}),
             "system_uptime": system_uptime,
+            "_controllable_load_ids": controllable_load_ids,
+            "_load_uid_map": load_uid_map,
+            "_variable_uid_map": variable_uid_map,
         }
         return data
 

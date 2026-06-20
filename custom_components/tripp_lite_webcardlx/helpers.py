@@ -308,11 +308,17 @@ def action_load_ids(actions_supported: Mapping[str, Any]) -> set[str]:
     return load_ids
 
 
-def load_action_supported(actions_supported: Mapping[str, Any], load: Mapping[str, Any]) -> bool:
+def load_action_supported(
+    actions_supported: Mapping[str, Any],
+    load: Mapping[str, Any],
+    cached_load_ids: set[str] | None = None,
+) -> bool:
     """Return whether a load is currently reported as controllable."""
     current_load_key = load_key(load)
     current_load_id = load_id(load)
-    supported_load_ids = action_load_ids(actions_supported)
+    supported_load_ids = (
+        cached_load_ids if cached_load_ids is not None else action_load_ids(actions_supported)
+    )
     has_composite_support = any(":" in item for item in supported_load_ids)
     return (
         bool(load.get("controllable"))

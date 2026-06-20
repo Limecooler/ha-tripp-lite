@@ -2,9 +2,32 @@
 
 Custom Home Assistant integration for Tripp Lite/Eaton WebcardLX cards installed in:
 
+**Tower models:**
+
 - Tripp Lite `SU1000XLA`
+- Tripp Lite `SU1500XLA`
+- Tripp Lite `SU2200XLA`
+- Tripp Lite `SU3000XLA`
+- Tripp Lite `SU1000XLCD`
+- Tripp Lite `SU2200XLCD`
+- Tripp Lite `SU3000XLCD`
+
+**2U rack models:**
+
 - Tripp Lite `SU1500RTXL2U`
 - Tripp Lite `SU1500RTXL2UA`
+- Tripp Lite `SU2200RTXL2U`
+- Tripp Lite `SU2200RTXL2UA`
+- Tripp Lite `SU3000RTXL2U`
+- Tripp Lite `SU3000RTXL2UA`
+
+**3U rack models:**
+
+- Tripp Lite `SU5000RT3U`
+- Tripp Lite `SU5000RT3UHW`
+- Tripp Lite `SU6000RT3U`
+- Tripp Lite `SU8000RT3U`
+- Tripp Lite `SU10000RT3U`
 
 The integration uses the local PowerAlert Device Manager REST API documented by Tripp Lite/Eaton and follows Home Assistant’s config entry, diagnostics, reauth, reconfigure, and entity naming patterns.
 
@@ -285,7 +308,7 @@ For power-control tests, first run with `--verbose` and inspect the controllable
 
 - `cannot_connect`: Confirm the IP address, routing, and that PowerAlert Device Manager is reachable from Home Assistant.
 - `invalid_auth`: Confirm the WebcardLX local username and password. The default local username is `localadmin`.
-- `unsupported_model`: Confirm the UPS model is one of `SU1000XLA`, `SU1500RTXL2U`, or `SU1500RTXL2UA`.
+- `unsupported_model`: Confirm the UPS model is one of the supported models listed at the top of this document. The integration accepts any device record when no explicitly supported model is detected, so a missing device record is more likely the cause than a missing model entry.
 - Self-signed HTTPS certificate failures: leave **Verify SSL certificate** disabled, which is the default for new entries.
 - Missing load switches: check whether `/api/actions/supported` and `/api/loads` report load control support and `controllable: true`.
 - Missing UPS status sensors: check whether `/api/variables` includes a status, operating mode, power source, input source, line status, online, on-battery, or battery-discharging variable.

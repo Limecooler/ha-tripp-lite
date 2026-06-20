@@ -216,6 +216,7 @@ def async_register_services(hass: HomeAssistant) -> None:
             if not load_action_supported(
                 runtime_data.coordinator.data.get("actions_supported", {}),
                 load,
+                runtime_data.coordinator.data.get("_controllable_load_ids"),
             ):
                 raise _service_error("load_action_not_supported")
             current_device_id = str(load.get("device_id"))
@@ -490,6 +491,16 @@ def _load_from_unique_id(
     unique_id: str,
 ) -> dict[str, Any] | None:
     """Return a load matching a load switch unique ID."""
+    # Fast O(1) path using the pre-computed reverse lookup map.
+    load_uid_map = runtime_data.coordinator.data.get("_load_uid_map")
+    if load_uid_map is not None:
+        lkey = load_uid_map.get(unique_id)
+        if lkey is not None:
+            load = runtime_data.coordinator.data.get("loads", {}).get(lkey)
+            if load is not None:
+                return dict(load)
+        return None
+    # Fallback O(N) scan for startup or missing map.
     for load in runtime_data.coordinator.data.get("loads", {}).values():
         device_id_value = str(load.get("device_id") or "")
         suffix = "main" if is_main_load(load) else stable_unique_suffix(load_id(load), "load")
@@ -505,6 +516,16 @@ def _variable_from_unique_id(
     entity_domain: str,
 ) -> dict[str, Any] | None:
     """Return a variable matching a config entity unique ID."""
+    # Fast O(1) path using the pre-computed reverse lookup map.
+    variable_uid_map = runtime_data.coordinator.data.get("_variable_uid_map")
+    if variable_uid_map is not None:
+        vkey = variable_uid_map.get(unique_id)
+        if vkey is not None:
+            variable = runtime_data.coordinator.data.get("variables", {}).get(vkey)
+            if variable is not None:
+                return dict(variable)
+        return None
+    # Fallback O(N) scan for startup or missing map.
     for variable in runtime_data.coordinator.data.get("variables", {}).values():
         if variable.get("password") or not is_editable_variable(variable):
             continue
