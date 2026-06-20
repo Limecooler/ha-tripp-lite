@@ -21,6 +21,7 @@ class ValueMetadata:
 
 
 MEASUREMENT = "measurement"
+TOTAL = "total"
 TOTAL_INCREASING = "total_increasing"
 
 
@@ -57,6 +58,9 @@ def value_metadata(label: str, suffix: str | None) -> ValueMetadata:
     if unit_lower in {"va", "volt-amps", "volt amps"} or "apparent power" in text:
         return ValueMetadata("VA", "apparent_power", MEASUREMENT, 0)
 
+    if unit_lower == "kva":
+        return ValueMetadata("kVA", "apparent_power", MEASUREMENT, 2)
+
     if unit_lower in {"var", "vars", "volt-amp reactive"} or "reactive power" in text:
         return ValueMetadata("var", "reactive_power", MEASUREMENT, 0)
 
@@ -65,7 +69,7 @@ def value_metadata(label: str, suffix: str | None) -> ValueMetadata:
 
     if unit_lower in {"kwh", "kw h", "kilowatt-hour", "kilowatt hours"} or "energy" in text:
         if "24hr" in text or "24 hour" in text or "24-hour" in text or "rolling" in text:
-            return ValueMetadata("kWh", "energy", MEASUREMENT, 2)
+            return ValueMetadata("kWh", "energy", TOTAL, 2)
         return ValueMetadata("kWh", "energy", TOTAL_INCREASING, 2)
 
     if unit_lower in {"f", "°f", "deg f", "fahrenheit"}:

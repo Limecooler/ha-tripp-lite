@@ -216,6 +216,7 @@ def test_action_support_helpers() -> None:
         ("Output Power", "Watts", "W", "power"),
         ("Output", "kW", "kW", "power"),
         ("Apparent Power", "VA", "VA", "apparent_power"),
+        ("Output Power", "KVA", "kVA", "apparent_power"),
         ("Reactive Power", "var", "var", "reactive_power"),
         ("Frequency", "Hz", "Hz", "frequency"),
         ("Energy", "kWh", "kWh", "energy"),
@@ -238,7 +239,7 @@ def test_metadata_misc() -> None:
     assert normalized_text(" A ", None) == "a"
     assert value_metadata("Power Factor", "%").device_class == "power_factor"
     assert value_metadata("No Unit", None).native_unit_of_measurement is None
-    assert value_metadata("Output 24hr Energy", "kWh").state_class == "measurement"
+    assert value_metadata("Output 24hr Energy", "kWh").state_class == "total"
     assert native_variable_value({"data_type": "VARTYPE_INTEGER", "value": "3.2"}) == 3
     assert native_variable_value({"data_type": "VARTYPE_FLOAT", "value": "3.2"}) == 3.2
     assert native_variable_value({"numeric": True, "value": "4.5"}) == 4.5
