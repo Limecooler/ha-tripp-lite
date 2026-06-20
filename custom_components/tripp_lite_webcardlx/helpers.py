@@ -186,7 +186,10 @@ def is_main_load(attributes: Mapping[str, Any]) -> bool:
 
 def label(attributes: Mapping[str, Any], fallback: str) -> str:
     """Return a display label from API attributes."""
-    value = attributes.get("display_label") or attributes.get("label") or attributes.get("name")
+    # Prefer the full label over the abbreviated display_label so that secondary
+    # variables (e.g. "Output Power (KVA)", "Input Voltage Minimum") get
+    # meaningful names instead of terse UI hints like "KVA" or "Minimum".
+    value = attributes.get("label") or attributes.get("display_label") or attributes.get("name")
     return str(value).strip() if value not in (None, "") else fallback
 
 
